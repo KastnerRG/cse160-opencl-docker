@@ -28,7 +28,6 @@ def install_dependencies(dockerfile: Dockerfile):
                                         pkg-config \
                                         make \
                                         ninja-build \
-                                        intel-oneapi-runtime-libs \
                                         opencl-headers \
                                         ocl-icd-libopencl1 \
                                         ocl-icd-dev \
