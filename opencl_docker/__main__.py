@@ -62,6 +62,7 @@ def install_pocl(dockerfile: Dockerfile, args: Any):
                      rm -rf /pocl")
     
 def install_opencl_intercept_layer(dockerfile: Dockerfile):
+    dockerfile.run("git clone https://github.com/intel/opencl-intercept-layer.git /opencl-intercept-layer")
     dockerfile.workdir("/opencl-intercept-layer")
     dockerfile.run("git checkout v3.0.5 && mkdir build")
     dockerfile.workdir("/opencl-intercept-layer/build")
@@ -90,6 +91,7 @@ def main():
     update_packages(dockerfile)
     install_dependencies(dockerfile)
     install_pocl(dockerfile, args)
+    install_opencl_intercept_layer(dockerfile)
 
     configure_user(dockerfile)
     
