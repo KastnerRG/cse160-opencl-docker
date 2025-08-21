@@ -16,31 +16,36 @@ def install_intel_opencl(dockerfile: Dockerfile):
                         apt-get update && apt-get install -y  intel-oneapi-runtime-libs && \
                         apt-get clean && rm -rf /var/lib/apt/lists/*')
         
-def install_dependencies(dockerfile: Dockerfile):
-    dockerfile.run("apt-get update && apt-get install -y build-essential \
-                                        git \
-                                        llvm \
-                                        libclang-cpp-dev \
-                                        llvm-dev \
-                                        clang \
-                                        libclang-dev \
-                                        cmake \
-                                        pkg-config \
-                                        make \
-                                        ninja-build \
-                                        opencl-headers \
-                                        ocl-icd-libopencl1 \
-                                        ocl-icd-dev \
-                                        ocl-icd-opencl-dev \
-                                        libhwloc-dev \
-                                        clinfo \
-                                        dialog \
-                                        apt-utils \
-                                        libxml2-dev \
-                                        vim \
-                                        gdb \
-                                        valgrind \
-                                        libclblast-dev \
+def install_dependencies(dockerfile: Dockerfile, args: Any):
+    dependencies = ["build-essential",
+                    "git",
+                    "llvm",
+                    "libclang-cpp-dev",
+                    "llvm-dev",
+                    "clang",
+                    "libclang-dev",
+                    "cmake",
+                    "pkg-config",
+                    "make",
+                    "ninja-build",
+                    "opencl-headers",
+                    "libhwloc-dev",
+                    "clinfo",
+                    "dialog",
+                    "apt-utils",
+                    "libxml2-dev",
+                    "vim",
+                    "gdb",
+                    "valgrind",
+                    "libclblast-dev"]
+    
+    if "qualcomm" in args.image:
+        dependencies.extend([
+            "ocl-icd-libopencl1",
+            "ocl-icd-dev",
+            "ocl-icd-opencl-dev"])
+
+    dockerfile.run(f"apt-get update && apt-get install -y {" ".join(dependencies)} \
                     && apt-get clean && rm -rf /var/lib/apt/lists/*")
     
 def install_pocl(dockerfile: Dockerfile, args: Any):
@@ -89,7 +94,7 @@ def main():
 
     install_intel_opencl(dockerfile)
     update_packages(dockerfile)
-    install_dependencies(dockerfile)
+    install_dependencies(dockerfile, args)
     install_pocl(dockerfile, args)
     install_opencl_intercept_layer(dockerfile)
 
