@@ -39,7 +39,7 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
                     "valgrind",
                     "libclblast-dev"]
     
-    if "qualcomm" in args.image:
+    if "qualcomm" not in args.image:
         dependencies.extend([
             "ocl-icd-libopencl1",
             "ocl-icd-dev",
