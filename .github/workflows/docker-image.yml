@@ -10,7 +10,6 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm]
         docker: 
           - {image: ubuntu, image_tag: 24.04, push_tag: cpu, platforms: 'linux/amd64,linux/arm64', runs-on: ubuntu-24.04}
           - {image: ghcr.io/kastnerrg/qualcomm-docker-base, image_tag: latest, push_tag: qcomm, platforms: linux/arm64, runs-on: ubuntu-24.04-arm}
