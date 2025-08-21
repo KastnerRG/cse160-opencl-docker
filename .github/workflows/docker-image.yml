@@ -11,7 +11,8 @@ jobs:
     strategy:
       matrix:
         docker: 
-          - {image: ubuntu, image_tag: 24.04, push_tag: cpu, platforms: 'linux/amd64,linux/arm64', runs-on: ubuntu-24.04}
+          - {image: ubuntu, image_tag: 24.04, push_tag: cpu-amd64, platforms: linux/amd64, runs-on: ubuntu-24.04}
+          - {image: ubuntu, image_tag: 24.04, push_tag: cpu-arm64, platforms: linux/arm64, runs-on: ubuntu-24.04}
           - {image: ghcr.io/kastnerrg/qualcomm-docker-base, image_tag: latest, push_tag: qcomm, platforms: linux/arm64, runs-on: ubuntu-24.04-arm}
           - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda, platforms: linux/amd64, runs-on: ubuntu-24.04}
     
