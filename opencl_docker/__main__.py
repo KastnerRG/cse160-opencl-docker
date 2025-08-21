@@ -28,7 +28,6 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
                     "pkg-config",
                     "make",
                     "ninja-build",
-                    "opencl-headers",
                     "libhwloc-dev",
                     "clinfo",
                     "dialog",
@@ -39,8 +38,13 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
                     "valgrind",
                     "libclblast-dev"]
     
-    if "qualcomm" not in args.image:
+    if "qualcomm" in args.image:
         dependencies.extend([
+            "qcom-adreno-cl-dev"
+        ])
+    else:
+        dependencies.extend([
+            "opencl-headers",
             "ocl-icd-libopencl1",
             "ocl-icd-dev",
             "ocl-icd-opencl-dev"])
