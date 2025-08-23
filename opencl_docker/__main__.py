@@ -36,6 +36,7 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
                     "vim",
                     "gdb",
                     "valgrind",
+                    "oclgrind",
                     "libclblast-dev"]
     
     if "qualcomm" in args.image:
@@ -80,16 +81,6 @@ def install_opencl_intercept_layer(dockerfile: Dockerfile):
                     make install && \
                     rm -rf /opencl-intercept-layer && \
                     ln -s /ocl-intercept/bin/cliloader /bin/cliloader")
-    
-def install_oclgrind(dockerfile: Dockerfile):
-    dockerfile.run("git clone https://github.com/jrprice/Oclgrind.git /oclgrind")
-    dockerfile.workdir("/oclgrind")
-    dockerfile.run("git checkout v21.10 && mkdir build")
-    dockerfile.workdir("/oclgrind/build")
-    dockerfile.run("cmake .. -DCMAKE_BUILD_TYPE=Release -DLLVM_DIR=/usr/lib/llvm-18/lib/cmake/llvm && \
-                    make -j && \
-                    make install && \
-                    rm -rf /oclgrind")
 
 def configure_user(dockerfile: Dockerfile):
     dockerfile.user("ubuntu")
@@ -111,7 +102,6 @@ def main():
     install_dependencies(dockerfile, args)
     install_pocl(dockerfile, args)
     install_opencl_intercept_layer(dockerfile)
-    install_oclgrind(dockerfile)
 
     configure_user(dockerfile)
     
