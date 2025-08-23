@@ -65,7 +65,7 @@ def install_pocl(dockerfile: Dockerfile, args: Any):
     if "nvidia" in args.image:
         cuda_switch = "-DENABLE_CUDA=ON"
 
-    dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=/ {cuda_switch} .. && \
+    dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=/ {cuda_switch} .. && \
                      make -j && \
                      make install && \
                      rm -rf /pocl")
