@@ -86,7 +86,7 @@ def install_oclgrind(dockerfile: Dockerfile):
     dockerfile.workdir("/oclgrind")
     dockerfile.run("git checkout v21.10 && mkdir build")
     dockerfile.workdir("/oclgrind/build")
-    dockerfile.run("cmake .. -DCMAKE_BUILD_TYPE=Release && \
+    dockerfile.run("cmake .. -DCMAKE_BUILD_TYPE=Release -DLLVM_DIR=/usr/lib/llvm-18/lib/cmake/llvm && \
                     make -j && \
                     make install && \
                     rm -rf /oclgrind")
