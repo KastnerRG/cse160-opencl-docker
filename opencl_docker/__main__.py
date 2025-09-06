@@ -116,7 +116,7 @@ def main():
     install_dependencies(dockerfile, args)
     install_pocl(dockerfile, args)
     install_opencl_intercept_layer(dockerfile)
-    install_cl_blast(dockerfile, args)
+    install_cl_blast(dockerfile)
 
     configure_user(dockerfile)
     
