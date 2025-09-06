@@ -92,8 +92,9 @@ def install_cl_blast(dockerfile: Dockerfile, args: Any):
     cuda_switch = ""
     if "nvidia" in args.image:
         cuda_switch = "-DCUDA=ON -DOPENCL=OFF"
-    
-    dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release {cuda_switch} .. && \
+
+    tripple = platform.machine() + "-linux-gnu"
+    dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release {cuda_switch} -DCMAKE_INSTALL_PREFIX=/usr/lib/{tripple} .. && \
                     make -j && \
                     make install && \
                     rm -rf /clblast")
