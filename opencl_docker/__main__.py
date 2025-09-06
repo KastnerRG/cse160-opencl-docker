@@ -37,7 +37,7 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
                     "gdb",
                     "valgrind",
                     "oclgrind",
-                    "libclblast-dev"]
+                ]
     
     if "qualcomm" in args.image:
         dependencies.extend([
@@ -81,6 +81,22 @@ def install_opencl_intercept_layer(dockerfile: Dockerfile):
                     make install && \
                     rm -rf /opencl-intercept-layer && \
                     ln -s /ocl-intercept/bin/cliloader /bin/cliloader")
+    
+def install_cl_blast(dockerfile: Dockerfile, args: Any):
+    # CLBlast has CUDA support.  Let's use it if it's available.
+    dockerfile.run("git clone https://github.com/CNugteren/CLBlast.git /clblast")
+    dockerfile.workdir("/clblast")
+    dockerfile.run("git checkout v1.6.3 && mkdir build")
+    dockerfile.workdir("/clblast/build")
+
+    cuda_switch = ""
+    if "nvidia" in args.image:
+        cuda_switch = "-DCUDA=ON -DOPENCL=OFF"
+    
+    dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release {cuda_switch} .. && \
+                    make -j && \
+                    make install && \
+                    rm -rf /clblast")
 
 def configure_user(dockerfile: Dockerfile):
     dockerfile.user("ubuntu")
@@ -102,6 +118,7 @@ def main():
     install_dependencies(dockerfile, args)
     install_pocl(dockerfile, args)
     install_opencl_intercept_layer(dockerfile)
+    install_cl_blast(dockerfile, args)
 
     configure_user(dockerfile)
     
