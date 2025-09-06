@@ -92,9 +92,8 @@ def install_cl_blast(dockerfile: Dockerfile, args: Any):
     cuda_switch = ""
     if "nvidia" in args.image:
         cuda_switch = "-DCUDA=ON -DOPENCL=OFF"
-
-    tripple = platform.machine() + "-linux-gnu"
-    dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release {cuda_switch} -DCMAKE_INSTALL_PREFIX=/usr/lib/{tripple} .. && \
+    
+    dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release {cuda_switch} .. && \
                     make -j && \
                     make install && \
                     rm -rf /clblast")
@@ -102,7 +101,10 @@ def install_cl_blast(dockerfile: Dockerfile, args: Any):
 def configure_user(dockerfile: Dockerfile):
     dockerfile.user("ubuntu")
     dockerfile.env(HOME="/home/ubuntu")
-    dockerfile.run("mkdir -p ${HOME}")
+    dockerfile.run("mkdir -p ${HOME} && \
+                    cp -r /etc/skel/. ${HOME} && \
+                    chown -R ubuntu:ubuntu ${HOME} && \
+                    echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ${HOME}/.bashrc")
     dockerfile.workdir("${HOME}")
 
 def main():
