@@ -86,7 +86,7 @@ def install_cl_blast(dockerfile: Dockerfile, args: Any):
     # CLBlast has CUDA support.  Let's use it if it's available.
     dockerfile.run("git clone https://github.com/CNugteren/CLBlast.git /clblast")
     dockerfile.workdir("/clblast")
-    dockerfile.run("git checkout v1.6.3 && mkdir build")
+    dockerfile.run("git checkout 1.6.3 && mkdir build")
     dockerfile.workdir("/clblast/build")
 
     cuda_switch = ""
