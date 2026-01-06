@@ -71,6 +71,15 @@ def install_pocl(dockerfile: Dockerfile, args: Any):
                      make install && \
                      rm -rf /pocl")
     
+def install_cuda_drivers(dockerfile: Dockerfile, args: Any):
+    if "nvidia" in args.image:
+        dockerfile.run('mkdir -p /etc/OpenCL/vendors && \
+                        echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd')
+        dockerfile.env({
+            "NVIDIA_VISIBLE_DEVICES": "all",
+            "NVIDIA_DRIVER_CAPABILITIES": "compute,utility"
+        })
+    
 def install_opencl_intercept_layer(dockerfile: Dockerfile):
     dockerfile.run("git clone https://github.com/intel/opencl-intercept-layer.git /opencl-intercept-layer")
     dockerfile.workdir("/opencl-intercept-layer")
@@ -115,6 +124,7 @@ def main():
     update_packages(dockerfile)
     install_dependencies(dockerfile, args)
     install_pocl(dockerfile, args)
+    install_cuda_drivers(dockerfile, args)
     install_opencl_intercept_layer(dockerfile)
     install_cl_blast(dockerfile)
 
@@ -122,7 +132,7 @@ def main():
     
     dockerfile.cmd("/bin/bash")
 
-    with open(args.output, "w") as f:
+    with open(args.output, "w", encoding="utf-8") as f:
         f.write(str(dockerfile))
 
 if __name__ == "__main__":
