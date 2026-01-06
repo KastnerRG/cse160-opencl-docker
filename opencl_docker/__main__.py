@@ -124,7 +124,7 @@ def main():
     update_packages(dockerfile)
     install_dependencies(dockerfile, args)
     install_pocl(dockerfile, args)
-    install_cuda_drivers(dockerfile, args)
+    # install_cuda_drivers(dockerfile, args)
     install_opencl_intercept_layer(dockerfile)
     install_cl_blast(dockerfile)
 
