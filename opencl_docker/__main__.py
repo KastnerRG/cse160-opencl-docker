@@ -75,7 +75,7 @@ def install_cuda_drivers(dockerfile: Dockerfile, args: Any):
     if "nvidia" in args.image:
         dockerfile.run('mkdir -p /etc/OpenCL/vendors && \
                         echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd')
-        dockerfile.env({
+        dockerfile.env(**{
             "NVIDIA_VISIBLE_DEVICES": "all",
             "NVIDIA_DRIVER_CAPABILITIES": "compute,utility"
         })
