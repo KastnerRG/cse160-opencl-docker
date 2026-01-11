@@ -19,11 +19,11 @@ def install_intel_opencl(dockerfile: Dockerfile):
 def install_dependencies(dockerfile: Dockerfile, args: Any):
     dependencies = ["build-essential",
                     "git",
-                    "llvm",
-                    "libclang-cpp-dev",
-                    "llvm-dev",
-                    "clang",
-                    "libclang-dev",
+                    "llvm-20",
+                    "llvm-20-dev",
+                    "clang-20",
+                    "libclang-20-dev",
+                    "libclang-cpp20-dev",
                     "cmake",
                     "pkg-config",
                     "make",
@@ -50,8 +50,10 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
             "ocl-icd-dev",
             "ocl-icd-opencl-dev"])
 
-    dockerfile.run(f"apt-get update && apt-get install -y {" ".join(dependencies)} \
-                    && apt-get clean && rm -rf /var/lib/apt/lists/*")
+    dockerfile.run(f'echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-20 main" | tee /etc/apt/sources.list.d/llvm-toolchain-noble.list && \
+                    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
+                    apt-get update && apt-get install -y {" ".join(dependencies)} \
+                    && apt-get clean && rm -rf /var/lib/apt/lists/*')
     
 def install_pocl(dockerfile: Dockerfile, args: Any):
     # We'll install PoCL on everything.
