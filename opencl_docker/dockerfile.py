@@ -3,6 +3,7 @@ from typing import Iterable, Dict
 
 class Dockerfile:
     def __init__(self, image: str):
+        self.image = image
         self.__writer = StringIO(newline="")
         self.__write_line(f"FROM {image}")
 
@@ -37,7 +38,8 @@ class Dockerfile:
         self.__write_line(f"SHELL [{shell_string}]")
 
     def user(self, user: str):
-        self.__write_line(f"RUN useradd -ms /bin/bash {user}")
+        if "22.04" in image:
+            self.__write_line(f"RUN useradd -ms /bin/bash {user}")
         self.__write_line(f"USER {user}")
 
     def workdir(self, workdir: str):
