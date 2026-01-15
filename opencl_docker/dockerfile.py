@@ -38,7 +38,7 @@ class Dockerfile:
         self.__write_line(f"SHELL [{shell_string}]")
 
     def user(self, user: str):
-        if "22.04" in image:
+        if "22.04" in self.image:
             self.__write_line(f"RUN useradd -ms /bin/bash {user}")
         self.__write_line(f"USER {user}")
 
