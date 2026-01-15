@@ -50,11 +50,18 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
             "ocl-icd-dev",
             "ocl-icd-opencl-dev"])
 
-    dockerfile.run(f'apt-get update && apt-get -y install wget gnupg2 && \
-                    echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-20 main" | tee /etc/apt/sources.list.d/llvm-toolchain-noble.list && \
-                    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
-                    apt-get update && apt-get install -y {" ".join(dependencies)} \
-                    && apt-get clean && rm -rf /var/lib/apt/lists/*')
+    if "22.04" not in args.image_tag:
+        dockerfile.run(f'apt-get update && apt-get -y install wget gnupg2 && \
+                        echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main" | tee /etc/apt/sources.list.d/llvm-toolchain-jammy.list && \
+                        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
+                        apt-get update && apt-get install -y {" ".join(dependencies)} \
+                        && apt-get clean && rm -rf /var/lib/apt/lists/*')
+    else:
+        dockerfile.run(f'apt-get update && apt-get -y install wget gnupg2 && \
+                        echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-20 main" | tee /etc/apt/sources.list.d/llvm-toolchain-noble.list && \
+                        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
+                        apt-get update && apt-get install -y {" ".join(dependencies)} \
+                        && apt-get clean && rm -rf /var/lib/apt/lists/*')
     
 def install_pocl(dockerfile: Dockerfile, args: Any):
     # We'll install PoCL on everything.
