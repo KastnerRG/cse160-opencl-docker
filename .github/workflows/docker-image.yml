@@ -11,11 +11,11 @@ jobs:
     strategy:
       matrix:
         docker: 
-          - {image: ubuntu, image_tag: 24.04, push_tag: cpu-amd64, platforms: linux/amd64, runs-on: ubuntu-24.04}
-          - {image: ubuntu, image_tag: 24.04, push_tag: cpu-arm64, platforms: linux/arm64, runs-on: ubuntu-24.04-arm}
-          - {image: ghcr.io/kastnerrg/qualcomm-docker-base, image_tag: latest, push_tag: qcomm, platforms: linux/arm64, runs-on: ubuntu-24.04-arm}
-          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda, platforms: linux/amd64, runs-on: ubuntu-24.04}
-          - {image: nvidia/cuda, image_tag: 12.2.2-devel-ubuntu22.04, push_tag: dsmlp, platforms: linux/amd64, runs-on: ubuntu-22.04}
+          - {image: ubuntu, image_tag: 24.04, push_tag: cpu-amd64, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: 7.1}
+          - {image: ubuntu, image_tag: 24.04, push_tag: cpu-arm64, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: 7.1}
+          - {image: ghcr.io/kastnerrg/qualcomm-docker-base, image_tag: latest, push_tag: qcomm, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: 7.1}
+          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: 7.1}
+          - {image: nvidia/cuda, image_tag: 12.2.2-devel-ubuntu22.04, push_tag: dsmlp, platforms: linux/amd64, runs-on: ubuntu-22.04, pocl_version: 6.0}
     
 
     runs-on: ${{ matrix.docker.runs-on }}
@@ -38,7 +38,7 @@ jobs:
         python-version: '3.12'
     - name: Generate Dockerfile
       run: |
-        python -m opencl_docker --image ${{ matrix.docker.image }}:${{ matrix.docker.image_tag }} --output Dockerfile
+        python -m opencl_docker --image ${{ matrix.docker.image }}:${{ matrix.docker.image_tag }} --pocl_version {{ matrix.docker.pocl_version }} --output Dockerfile
     -
       name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3

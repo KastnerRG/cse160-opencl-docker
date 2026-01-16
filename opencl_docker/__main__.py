@@ -69,7 +69,7 @@ def install_pocl(dockerfile: Dockerfile, args: Any):
     # PoCL has CUDA OpenCL support
     dockerfile.run("git clone https://github.com/pocl/pocl.git /pocl")
     dockerfile.workdir("/pocl")
-    dockerfile.run("git checkout v6.0 && mkdir build")
+    dockerfile.run(f"git checkout v{str(args.pocl_version)} && mkdir build")
     dockerfile.workdir("/pocl/build")
 
     cuda_switch = ""
@@ -125,6 +125,7 @@ def main():
     parser = ArgumentParser("opencl-docker")
     parser.add_argument("-i", "--image", required=True, help="The image for the resulting Dockerfile.")
     parser.add_argument("-o", "--output", required=True, help="The output file for the Dockerfile.")
+    parser.add_argument("-p", "--pocl_version", required=True, help="The version of pocl to install.")
 
     args = parser.parse_args()
 
