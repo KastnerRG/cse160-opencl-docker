@@ -43,6 +43,11 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
         dependencies.extend([
             "qcom-adreno-cl-dev"
         ])
+    elif "rocm" in args.image:
+        dependencies.extend([
+            "rocm-opencl-runtime",
+            "rocm-opencl-dev"
+        ])
     else:
         dependencies.extend([
             "opencl-headers",
@@ -67,19 +72,20 @@ def install_pocl(dockerfile: Dockerfile, args: Any):
     # We'll install PoCL on everything.
     # Intel OpenCL driver doesn't support aarch64
     # PoCL has CUDA OpenCL support
-    dockerfile.run("git clone https://github.com/pocl/pocl.git /pocl")
-    dockerfile.workdir("/pocl")
-    dockerfile.run("git checkout v7.1 && mkdir build")
-    dockerfile.workdir("/pocl/build")
+    if "rocm" not in args.image:
+        dockerfile.run("git clone https://github.com/pocl/pocl.git /pocl")
+        dockerfile.workdir("/pocl")
+        dockerfile.run("git checkout v7.1 && mkdir build")
+        dockerfile.workdir("/pocl/build")
 
-    cuda_switch = ""
-    if "nvidia" in args.image:
-        cuda_switch = "-DENABLE_CUDA=ON"
+        cuda_switch = ""
+        if "nvidia" in args.image:
+            cuda_switch = "-DENABLE_CUDA=ON"
 
-    dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=/ {cuda_switch} .. && \
-                     make -j && \
-                     make install && \
-                     rm -rf /pocl")
+        dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=/ {cuda_switch} .. && \
+                         make -j && \
+                         make install && \
+                         rm -rf /pocl")
     
 def install_cuda_drivers(dockerfile: Dockerfile, args: Any):
     if "nvidia" in args.image:
@@ -88,6 +94,13 @@ def install_cuda_drivers(dockerfile: Dockerfile, args: Any):
         dockerfile.env(**{
             "NVIDIA_VISIBLE_DEVICES": "all",
             "NVIDIA_DRIVER_CAPABILITIES": "compute,utility"
+        })
+
+def install_rocm_drivers(dockerfile: Dockerfile, args: Any):
+    if "rocm" in args.image:
+        dockerfile.env(**{
+            "ROCR_VISIBLE_DEVICES": "all",
+            #"HIP_VISIBLE_DEVICES": "all"
         })
     
 def install_opencl_intercept_layer(dockerfile: Dockerfile):
@@ -112,7 +125,7 @@ def install_cl_blast(dockerfile: Dockerfile):
                     make install && \
                     rm -rf /clblast")
 
-def configure_user(dockerfile: Dockerfile):
+def configure_user(dockerfile: Dockerfile, args: Any):
     dockerfile.user("ubuntu")
     dockerfile.env(HOME="/home/ubuntu")
     dockerfile.run("mkdir -p ${HOME} && \
@@ -120,6 +133,13 @@ def configure_user(dockerfile: Dockerfile):
                     chown -R ubuntu:ubuntu ${HOME} && \
                     echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ${HOME}/.bashrc")
     dockerfile.workdir("${HOME}")
+    if "rocm" in args.image:
+        dockerfile.user("root")
+        # Device Specific
+        # dockerfile.run("groupmod -g 105 render")
+        # dockerfile.run("groupmod -g 39 video")
+        dockerfile.run("usermod -a -G render,video,irc ubuntu")
+        dockerfile.user("ubuntu")
 
 def main():
     parser = ArgumentParser("opencl-docker")
@@ -135,10 +155,11 @@ def main():
     install_dependencies(dockerfile, args)
     install_pocl(dockerfile, args)
     # install_cuda_drivers(dockerfile, args)
+    install_rocm_drivers(dockerfile, args)
     install_opencl_intercept_layer(dockerfile)
     install_cl_blast(dockerfile)
 
-    configure_user(dockerfile)
+    configure_user(dockerfile, args)
     
     dockerfile.cmd("/bin/bash")
 
