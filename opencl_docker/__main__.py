@@ -52,7 +52,7 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
 
     if "22.04" in args.image:
         dockerfile.run(f'apt-get update && apt-get -y install software-properties-common && \
-                         apt-get install -y ocl-icd-libopencl1 ocl-icd-opencl-dev')
+                         apt-get install -y ocl-icd-libopencl1 ocl-icd-opencl-dev ocl-icd')
         dockerfile.run(f'apt-get update && apt-get -y install wget gnupg2 && \
                         echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main" | tee /etc/apt/sources.list.d/llvm-toolchain-jammy.list && \
                         wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
