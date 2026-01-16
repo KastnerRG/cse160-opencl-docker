@@ -38,7 +38,7 @@ jobs:
         python-version: '3.12'
     - name: Generate Dockerfile
       run: |
-        python -m opencl_docker --image ${{ matrix.docker.image }}:${{ matrix.docker.image_tag }} --pocl_version {{ matrix.docker.pocl_version }} --output Dockerfile
+        python -m opencl_docker --image ${{ matrix.docker.image }}:${{ matrix.docker.image_tag }} --pocl_version ${{ matrix.docker.pocl_version }} --output Dockerfile
     -
       name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
