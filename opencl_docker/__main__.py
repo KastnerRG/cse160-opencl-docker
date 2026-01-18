@@ -102,6 +102,18 @@ def install_rocm_drivers(dockerfile: Dockerfile, args: Any):
             "ROCR_VISIBLE_DEVICES": "all",
             #"HIP_VISIBLE_DEVICES": "all"
         })
+    if platform.system() == "Windows":
+        dockerfile.run("apt-get update && \
+                       wget https://repo.radeon.com/amdgpu-install/7.1.1/ubuntu/noble/amdgpu-install_7.1.1.70101-1_all.deb && \
+                       yes Y | apt-get install -y ./amdgpu-install_7.1.1.70101-1_all.deb")
+        dockerfile.run("yes Y | amdgpu-install --uninstall")
+        dockerfile.run("apt-get remove -y ./amdgpu-install_7.1.1.70101-1_all.deb")
+        dockerfile.run("apt-get update && apt autoremove -y &&\
+                       wget https://repo.radeon.com/amdgpu-install/6.4.2.1/ubuntu/noble/amdgpu-install_6.4.60402-1_all.deb && \
+                       yes Y | apt-get install -y ./amdgpu-install_6.4.60402-1_all.deb --allow-downgrades")
+        #dockerfile.run("amdgpu-install -y --usecase=wsl,rocm,opencl --no-dkms")
+        dockerfile.run("amdgpu-install -y --usecase=wsl,rocm,opencl")
+        dockerfile.run("apt-get install -y rocm-opencl-runtime rocm-opencl-dev amd-container-toolkit ocl-icd-opencl-dev opencl-headers clinfo")
     
 def install_opencl_intercept_layer(dockerfile: Dockerfile):
     dockerfile.run("git clone https://github.com/intel/opencl-intercept-layer.git /opencl-intercept-layer")
