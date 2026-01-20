@@ -50,21 +50,19 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
             "ocl-icd-dev",
             "ocl-icd-opencl-dev"])
 
+    # Ubuntu 22.04 needs ocl-icd from this PPA in order to support newer versions of POCL
     if "22.04" in args.image:
         dockerfile.run(f'apt-get update && apt-get -y install software-properties-common && \
                         add-apt-repository ppa:ocl-icd/ppa && apt-get update && \
                          apt-get install -y ocl-icd-libopencl1 ocl-icd-opencl-dev')
-        dockerfile.run(f'apt-get update && apt-get -y install wget gnupg2 && \
-                        echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-20 main" | tee /etc/apt/sources.list.d/llvm-toolchain-jammy.list && \
-                        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
-                        apt-get update && apt-get install -y {" ".join(dependencies)} \
-                        && apt-get clean && rm -rf /var/lib/apt/lists/*')
-    else:
-        dockerfile.run(f'apt-get update && apt-get -y install wget gnupg2 && \
-                        echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-20 main" | tee /etc/apt/sources.list.d/llvm-toolchain-noble.list && \
-                        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
-                        apt-get update && apt-get install -y {" ".join(dependencies)} \
-                        && apt-get clean && rm -rf /var/lib/apt/lists/*')
+        ubuntu_name = "jammy"
+    else: #22.04
+        ubuntu_name = "noble"
+    dockerfile.run(f'apt-get update && apt-get -y install wget gnupg2 && \
+                    echo "deb http://apt.llvm.org/{ubuntu_name}/ llvm-toolchain-{ubuntu_name}-20 main" | tee /etc/apt/sources.list.d/llvm-toolchain-{ubuntu_name}.list && \
+                    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
+                    apt-get update && apt-get install -y {" ".join(dependencies)} \
+                    && apt-get clean && rm -rf /var/lib/apt/lists/*')
     
 def install_pocl(dockerfile: Dockerfile, args: Any):
     # We'll install PoCL on everything.
@@ -83,6 +81,22 @@ def install_pocl(dockerfile: Dockerfile, args: Any):
                      make -j && \
                      make install && \
                      rm -rf /pocl")
+    
+def install_cuda_dsmlp(dockerfile: Dockerfile, args: Any):
+    # Hack to port old cuda version forward
+    if "dsmlp" in args.tag:
+        dockerfile.copy("--from=nvcr.io/nvidia/cuda:12.2.0-devel-ubuntu22.04 /usr/local/cuda-12.2", "/usr/local/cuda-12.2", src_img="nvcr.io/nvidia/cuda:12.2.0-devel-ubuntu22.04")
+        # dockerfile.copy("--from=nvcr.io/nvidia/cuda:12.2.0-devel-ubuntu22.04 /usr/local/nvidia", "/usr/local/nvidia", src_img="nvcr.io/nvidia/cuda:12.2.0-devel-ubuntu22.04")
+        dockerfile.run("ln -sf cuda-12.2 /usr/local/cuda && ln -sf cuda-12.2 /usr/local/cuda-12")
+        dockerfile.run("echo '/usr/local/cuda/targets/x86_64-linux/lib' >> /etc/ld.so.conf.d/000_cuda.conf && \
+            echo '/usr/local/cuda-12/targets/x86_64-linux/lib' >> /etc/ld.so.conf.d/988_cuda-12.conf && \
+            ( echo '/usr/local/nvidia/lib'; echo '/usr/local/nvidia/lib64' ) >> /etc/ld.so.conf.d/nvidia.conf && \
+            ldconfig")
+        dockerfile.env(**{
+            'CUDA_HOME' : "/usr/local/cuda",
+            'PATH' : '${CUDA_HOME}/bin:${PATH}'
+        })
+
     
 def install_cuda_drivers(dockerfile: Dockerfile, args: Any):
     if "nvidia" in args.image:
@@ -128,12 +142,14 @@ def main():
     parser = ArgumentParser("opencl-docker")
     parser.add_argument("-i", "--image", required=True, help="The image for the resulting Dockerfile.")
     parser.add_argument("-o", "--output", required=True, help="The output file for the Dockerfile.")
+    parser.add_argument("-t", "--tag", required=True, help="The push tag for the Dockerfile.")
     parser.add_argument("-p", "--pocl_version", required=True, help="The version of pocl to install.")
 
     args = parser.parse_args()
 
     dockerfile = Dockerfile(args.image)
 
+    install_cuda_dsmlp(dockerfile, args)
     install_intel_opencl(dockerfile)
     update_packages(dockerfile)
     install_dependencies(dockerfile, args)

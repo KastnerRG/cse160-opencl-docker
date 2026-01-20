@@ -23,7 +23,7 @@ class Dockerfile:
         cmd_string = ", ".join(f'"{c}"' for c in cmd_args)
         self.__write_line(f"CMD [{cmd_string}]")
 
-    def copy(self, source: str, destinsation: str):
+    def copy(self, source: str, destinsation: str, src_img: str=""):
         self.__write_line(f"COPY {source} {destinsation}")
     
     def env(self, **kwargs: Dict[str, str]):
@@ -40,6 +40,7 @@ class Dockerfile:
     def user(self, user: str):
         if "22.04" in self.image:
             self.__write_line(f"RUN useradd -ms /bin/bash {user}")
+        # self.__write_line(f"RUN groupadd -g 65533 cuda && usermod -a -G cuda {user}") # needed for waiter
         self.__write_line(f"USER {user}")
 
     def workdir(self, workdir: str):
