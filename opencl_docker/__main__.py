@@ -37,8 +37,7 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
                     "gdb",
                     "valgrind",
                     "oclgrind",
-                    "python3-numpy",
-                    "netcat-openbsd"
+                    "python3-numpy"
                 ]
     
     if "qualcomm" in args.image:
@@ -51,6 +50,12 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
             "ocl-icd-libopencl1",
             "ocl-icd-dev",
             "ocl-icd-opencl-dev"])
+    
+    if "dsmlp" in args.tag:
+        dependencies.extend([
+            "openssh-server",
+            "netcat-openbsd"
+        ])
 
     # Ubuntu 22.04 needs ocl-icd from this PPA in order to support newer versions of POCL
     if "22.04" in args.image:
