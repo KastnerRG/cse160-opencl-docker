@@ -87,11 +87,11 @@ def install_cuda_dsmlp(dockerfile: Dockerfile, args: Any):
     if "dsmlp" in args.tag:
         dockerfile.copy("--from=nvcr.io/nvidia/cuda:12.2.0-devel-ubuntu22.04 /usr/local/cuda-12.2", "/usr/local/cuda-12.2", src_img="nvcr.io/nvidia/cuda:12.2.0-devel-ubuntu22.04")
         # dockerfile.copy("--from=nvcr.io/nvidia/cuda:12.2.0-devel-ubuntu22.04 /usr/local/nvidia", "/usr/local/nvidia", src_img="nvcr.io/nvidia/cuda:12.2.0-devel-ubuntu22.04")
-        dockerfile.run("ln -sf cuda-12.2 /usr/local/cuda && ln -sf cuda-12.2 /usr/local/cuda-12")
-        dockerfile.run("echo '/usr/local/cuda/targets/x86_64-linux/lib' >> /etc/ld.so.conf.d/000_cuda.conf && \
-            echo '/usr/local/cuda-12/targets/x86_64-linux/lib' >> /etc/ld.so.conf.d/988_cuda-12.conf && \
-            ( echo '/usr/local/nvidia/lib'; echo '/usr/local/nvidia/lib64' ) >> /etc/ld.so.conf.d/nvidia.conf && \
-            ldconfig")
+        dockerfile.run("rm /usr/local/cuda /usr/local/cuda-12 && ln -sf cuda-12.2 /usr/local/cuda && ln -sf cuda-12.2 /usr/local/cuda-12")
+        # dockerfile.run("echo '/usr/local/cuda/targets/x86_64-linux/lib' >> /etc/ld.so.conf.d/000_cuda.conf && \
+        #     echo '/usr/local/cuda-12/targets/x86_64-linux/lib' >> /etc/ld.so.conf.d/988_cuda-12.conf && \
+        #     ( echo '/usr/local/nvidia/lib'; echo '/usr/local/nvidia/lib64' ) >> /etc/ld.so.conf.d/nvidia.conf && \
+        #     ldconfig")
         dockerfile.env(**{
             'CUDA_HOME' : "/usr/local/cuda",
             'PATH' : '${CUDA_HOME}/bin:${PATH}'
@@ -149,7 +149,6 @@ def main():
 
     dockerfile = Dockerfile(args.image)
 
-    install_cuda_dsmlp(dockerfile, args)
     install_intel_opencl(dockerfile)
     update_packages(dockerfile)
     install_dependencies(dockerfile, args)
@@ -157,6 +156,7 @@ def main():
     # install_cuda_drivers(dockerfile, args)
     install_opencl_intercept_layer(dockerfile)
     install_cl_blast(dockerfile)
+    install_cuda_dsmlp(dockerfile, args)
 
     configure_user(dockerfile)
     
