@@ -37,6 +37,8 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
                     "gdb",
                     "valgrind",
                     "oclgrind",
+                    "python3-numpy",
+                    "netcat-openbsd"
                 ]
     
     if "qualcomm" in args.image:
