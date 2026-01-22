@@ -135,7 +135,7 @@ def install_rocm_drivers(dockerfile: Dockerfile, args: Any):
                        yes Y | apt-get install -y ./amdgpu-install_6.4.60402-1_all.deb --allow-downgrades")
         #dockerfile.run("amdgpu-install -y --usecase=wsl,rocm,opencl --no-dkms")
         dockerfile.run("amdgpu-install -y --usecase=wsl,rocm,opencl")
-        dockerfile.run("apt-get install -y rocm-opencl-runtime rocm-opencl-dev amd-container-toolkit ocl-icd-opencl-dev opencl-headers clinfo")
+        dockerfile.run("apt-get install -y rocm-opencl-runtime rocm-opencl-dev ocl-icd-opencl-dev opencl-headers clinfo")
     
 def install_opencl_intercept_layer(dockerfile: Dockerfile):
     dockerfile.run("git clone https://github.com/intel/opencl-intercept-layer.git /opencl-intercept-layer")
