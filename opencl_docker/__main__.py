@@ -115,7 +115,7 @@ def install_cuda_drivers(dockerfile: Dockerfile, args: Any):
 def install_opencl_intercept_layer(dockerfile: Dockerfile):
     dockerfile.run("git clone https://github.com/intel/opencl-intercept-layer.git /opencl-intercept-layer")
     dockerfile.workdir("/opencl-intercept-layer")
-    dockerfile.run("git checkout v3.0.5 && mkdir build")
+    dockerfile.run("git checkout v3.0.6 && mkdir build")
     dockerfile.workdir("/opencl-intercept-layer/build")
     dockerfile.run("cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/ocl-intercept .. && \
                     make -j && \
