@@ -65,6 +65,7 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
         ubuntu_name = "jammy"
     else: # 24.04
         ubuntu_name = "noble"
+
     dockerfile.run(f'apt-get update && apt-get -y install wget gnupg2 && \
                     echo "deb http://apt.llvm.org/{ubuntu_name}/ llvm-toolchain-{ubuntu_name}-20 main" | tee /etc/apt/sources.list.d/llvm-toolchain-{ubuntu_name}.list && \
                     wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
@@ -99,6 +100,7 @@ def install_cuda_dsmlp(dockerfile: Dockerfile, args: Any):
         dockerfile.run("rm /usr/local/cuda /usr/local/cuda-12; ln -sf cuda-12.2 /usr/local/cuda && ln -sf cuda-12.2 /usr/local/cuda-12")
         dockerfile.env(**{
             'CUDA_HOME' : "/usr/local/cuda",
+            'NVIDIA_DISABLE_REQUIRES': "true",
             'PATH' : '${CUDA_HOME}/bin:${PATH}'
         })
 
@@ -157,11 +159,11 @@ def main():
     install_intel_opencl(dockerfile)
     update_packages(dockerfile)
     install_dependencies(dockerfile, args)
+    install_cuda_dsmlp(dockerfile, args)
     install_pocl(dockerfile, args)
     # install_cuda_drivers(dockerfile, args)
     install_opencl_intercept_layer(dockerfile)
     install_cl_blast(dockerfile)
-    install_cuda_dsmlp(dockerfile, args)
 
     configure_user(dockerfile)
     
