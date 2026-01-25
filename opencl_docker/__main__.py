@@ -100,6 +100,7 @@ def install_cuda_dsmlp(dockerfile: Dockerfile, args: Any):
         dockerfile.run("rm /usr/local/cuda /usr/local/cuda-12; ln -sf cuda-12.2 /usr/local/cuda && ln -sf cuda-12.2 /usr/local/cuda-12")
         dockerfile.env(**{
             'CUDA_HOME' : "/usr/local/cuda",
+            'CUDA_VERSION' : "12.2.0",
             'PATH' : '${CUDA_HOME}/bin:${PATH}'
         })
 
