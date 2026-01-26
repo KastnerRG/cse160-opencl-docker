@@ -81,11 +81,14 @@ def install_pocl(dockerfile: Dockerfile, args: Any):
     dockerfile.run(f"git checkout {args.pocl_version} && mkdir build")
     dockerfile.workdir("/pocl/build")
 
-    cuda_switch = ""
+    pocl_switches = ""
     if "nvidia" in args.image:
-        cuda_switch = "-DENABLE_CUDA=ON"
+        pocl_switches += "-DENABLE_CUDA=ON "
 
-    dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=/ {cuda_switch} .. && \
+    if "apple-silicon" in args.tag:
+        pocl_switches += "-DLLC_HOST_CPU=cortex-a53 "
+
+    dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=/ {pocl_switches} .. && \
                      make -j && \
                      make install && \
                      rm -rf /pocl")
