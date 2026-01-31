@@ -28,5 +28,5 @@ jobs:
 
         - name: Sync files to Automaton server
           run: |
-            git remote add downstream ssh://git@smartcycling.sysnet.ucsd.edu:44422/cse160/cse160-autograder.git
+            git remote add downstream ssh://git@smartcycling.sysnet.ucsd.edu:44422/cse160/cse160-opencl-docker.git
             git push -fu downstream main
