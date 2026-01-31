@@ -18,6 +18,7 @@ jobs:
             chmod 700 ~/.ssh
             ls -lha ~
             echo "${{ secrets.AUTOMATON_SSH_KEY }}" > ~/.ssh/id_ed25519
+            echo  >> ~/.ssh/id_ed25519
             chmod 600 ~/.ssh/id_ed25519
             ls -lha ~/.ssh
 
