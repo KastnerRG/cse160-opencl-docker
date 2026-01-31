@@ -16,6 +16,8 @@ jobs:
           run: |
             mkdir -p ~/.ssh
             chmod 700 ~/.ssh
+            ls -lh ~
+            ls -lh ~/.ssh
             echo "${{ secrets.AUTOMATON_SSH_KEY }}" > ~/.ssh/id_ed25519
             chmod 600 ~/.ssh/id_ed25519
 
