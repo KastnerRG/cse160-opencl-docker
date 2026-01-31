@@ -1,0 +1,23 @@
+name: Sync to Automaton
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+    sync:
+        runs-on: ubuntu-latest
+
+        steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+
+        - name: Save ssh key
+          run: |
+            echo "${{ secrets.AUTOMATON_SSH_KEY }}" > automaton_key
+            chmod 600 automaton_key
+
+        - name: Sync files to Automaton server
+          run: |
+            git remote add downstream ssh://git@smartcycling.sysnet.ucsd.edu:44422/cse160/cse160-autograder.git
+            git push -fu downstream main
