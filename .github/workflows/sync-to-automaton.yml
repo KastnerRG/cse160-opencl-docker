@@ -16,10 +16,10 @@ jobs:
           run: |
             mkdir -p ~/.ssh
             chmod 700 ~/.ssh
-            ls -lh ~
-            ls -lh ~/.ssh
+            ls -lha ~
             echo "${{ secrets.AUTOMATON_SSH_KEY }}" > ~/.ssh/id_ed25519
             chmod 600 ~/.ssh/id_ed25519
+            ls -lha ~/.ssh
 
         - name: Sync files to Automaton server
           run: |
