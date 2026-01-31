@@ -14,8 +14,8 @@ jobs:
 
         - name: Save ssh key
           run: |
-            echo "${{ secrets.AUTOMATON_SSH_KEY }}" > automaton_key
-            chmod 600 automaton_key
+            echo "${{ secrets.AUTOMATON_SSH_KEY }}" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
 
         - name: Sync files to Automaton server
           run: |
