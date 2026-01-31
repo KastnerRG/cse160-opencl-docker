@@ -27,6 +27,8 @@ build:
   tags:
     - tls-docker-runner
   script:
+    - apk update
+    - apk add python3
     - echo "Building container $CI_REGISTRY_IMAGE"
     - python3 -m opencl_docker --image smartcycling.sysnet.ucsd.edu:45050/junkyard-computing/pixelfold-docker --tag junkyard --pocl_version v7.1 --output Dockerfile
     - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
