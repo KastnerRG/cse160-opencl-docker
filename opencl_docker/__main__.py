@@ -88,6 +88,9 @@ def install_pocl(dockerfile: Dockerfile, args: Any):
     if "apple-silicon" in args.tag:
         pocl_switches += "-DLLC_HOST_CPU=cortex-a53 "
 
+    if "junkyard" in args.tag:
+        pocl_switches += "-DLLC_HOST_CPU=cortex-a78 "
+
     dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=/ {pocl_switches} .. && \
                      make -j && \
                      make install && \
