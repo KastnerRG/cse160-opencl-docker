@@ -57,6 +57,11 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
             "netcat-openbsd"
         ])
 
+    if "pytorch" in args.tag:
+        dependencies.extend([
+            "python3-dev"
+        ])
+
     # Ubuntu 22.04 needs ocl-icd from this PPA in order to support newer versions of POCL
     if "22.04" in args.image:
         dockerfile.run(f'apt-get update && apt-get -y install software-properties-common && \
