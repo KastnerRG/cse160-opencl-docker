@@ -26,6 +26,7 @@ build:
   stage: build
   tags:
     - tls-docker-runner
+    # - arm64 # We need to use the arm64 runner to build arm64 images
   script:
     - apk update
     - apk add python3
