@@ -43,5 +43,8 @@ class Dockerfile:
         # self.__write_line(f"RUN groupadd -g 65533 cuda && usermod -a -G cuda {user}") # needed for waiter
         self.__write_line(f"USER {user}")
 
+    def userswitch(self, user: str):
+        self.__write_line(f"USER {user}")
+
     def workdir(self, workdir: str):
         self.__write_line(f"WORKDIR {workdir}")
