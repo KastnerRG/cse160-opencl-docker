@@ -59,8 +59,16 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
 
     if "pytorch" in args.tag:
         dependencies.extend([
-            "python3-dev"
+            "python3",
+            "python3-dev",
+            "python3-pip",
+            "sqlite3",
+            "ca-certificates",
+            "libsqlite3-dev",
+            "g++",
+            "libopenblas-dev"
         ])
+    
 
     # Ubuntu 22.04 needs ocl-icd from this PPA in order to support newer versions of POCL
     if "22.04" in args.image:
@@ -157,6 +165,47 @@ def configure_user(dockerfile: Dockerfile):
                     echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ${HOME}/.bashrc")
     dockerfile.workdir("${HOME}")
 
+def install_pytorch_ocl(dockerfile: Dockerfile, args):
+    if "pytorch" not in args.tag:
+        return
+
+    dockerfile.run("git clone --recurse-submodules https://github.com/KastnerRG/pytorch_dlprim.git /pytorch_dlprim")
+    dockerfile.workdir("/pytorch_dlprim")
+    ## Note that this can break package dependencies
+    ## Should be fine as long as we don't install too many things with pip...
+    ## But we need to use pip here since torch is funky :(
+    dockerfile.run("pip install pybind11[global] --break-system-packages")
+    dockerfile.run("pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu --break-system-packages") # Do we have pip? / Do we want to give pip?
+    
+    
+    
+    dockerfile.run("cd /pytorch_dlprim/dlprimitives  && \
+        mkdir -p build && \
+        cd build && \
+        cmake .. \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+        -DCMAKE_INSTALL_PREFIX=/usr/local && \
+        make -j$(nproc) && \
+        make install && \
+        ldconfig")
+
+    dockerfile.run('''cd /pytorch_dlprim && \
+        mkdir -p build && \
+        cd build && \
+        cmake .. \
+        -DCMAKE_PREFIX_PATH="$(python3 -c 'import torch;print(torch.utils.cmake_prefix_path)');$(python3 -c 'import pybind11;print(pybind11.get_cmake_dir())')" \
+        -DCMAKE_INSTALL_PREFIX=/usr/local && \
+        make -j$(nproc) && \
+        make install && \
+        ldconfig''')
+
+    dockerfile.run("rm -rf /pytorch_dlprim")
+    dockerfile.env(PYTHONPATH="/usr/local/python")
+    
+
+
+
+
 def main():
     parser = ArgumentParser("opencl-docker")
     parser.add_argument("-i", "--image", required=True, help="The image for the resulting Dockerfile.")
@@ -174,6 +223,7 @@ def main():
     install_cuda_dsmlp(dockerfile, args)
     install_pocl(dockerfile, args)
     # install_cuda_drivers(dockerfile, args)
+    install_pytorch_ocl(dockerfile, args)
     install_opencl_intercept_layer(dockerfile)
     install_cl_blast(dockerfile)
 

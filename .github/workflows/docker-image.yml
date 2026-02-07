@@ -11,13 +11,15 @@ jobs:
     strategy:
       matrix:
         docker: 
-          - {image: ubuntu, image_tag: 24.04, push_tag: cpu-amd64, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1}
-          - {image: ubuntu, image_tag: 24.04, push_tag: cpu-arm64, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
-          - {image: ubuntu, image_tag: 24.04, push_tag: apple-silicon, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
-          - {image: ghcr.io/kastnerrg/qualcomm-docker-base, image_tag: latest, push_tag: qcomm, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
-          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1}
-          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: dsmlp, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1}
-          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda-pytorch, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1}
+          # - {image: ubuntu, image_tag: 24.04, push_tag: cpu-amd64, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1}
+          # - {image: ubuntu, image_tag: 24.04, push_tag: cpu-arm64, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
+          # - {image: ubuntu, image_tag: 24.04, push_tag: apple-silicon, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
+          - {image: ubuntu, image_tag: 24.04, push_tag: apple-silicon-pytorch, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
+          # - {image: ghcr.io/kastnerrg/qualcomm-docker-base, image_tag: latest, push_tag: qcomm, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
+          - {image: ghcr.io/kastnerrg/qualcomm-docker-base, image_tag: latest, push_tag: qcomm-pytorch, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
+          # - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1}
+          # - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: dsmlp, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1}
+          # - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda-pytorch, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1}
     
 
     runs-on: ${{ matrix.docker.runs-on }}
