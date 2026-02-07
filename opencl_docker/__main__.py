@@ -1,4 +1,4 @@
-from opencl_docker.dockerfile import Dockerfile
+from dockerfile import Dockerfile
 from argparse import ArgumentParser
 import platform
 from typing import Any

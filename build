@@ -1,0 +1,2 @@
+python -m opencl_docker --image ${{ matrix.docker.image }}:${{ matrix.docker.image_tag }} --tag ${{ matrix.docker.push_tag }} --pocl_version ${{ matrix.docker.pocl_version }} --output Dockerfile
+python -m opencl_docker --image nvidia/cuda:12.6.3-cudnn-devel-ubuntu24.04 --tag cuda-pytorch --pocl_version v7.1 --output Dockerfile
