@@ -175,24 +175,28 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
     dockerfile.workdir("/pytorch_dlprim")
     # install required opencl-headers to build the dlprim_pytorch for qualcomm since its not available out the door
     if "qualcomm" in args.image:
-        dockerfile.run("mkdir -p ~/dev/llm \
-            cd ~/dev/llm \
-            git clone https://github.com/KhronosGroup/OpenCL-Headers && cd OpenCL-Headers \
-            mkdir build && cd build \
-            cmake .. -G Ninja ` \
-            -DBUILD_TESTING=OFF ` \
-            -DOPENCL_HEADERS_BUILD_TESTING=OFF ` \
-            -DOPENCL_HEADERS_BUILD_CXX_TESTS=OFF ` \
-            -DCMAKE_INSTALL_PREFIX='$HOME/dev/llm/opencl' \
-            cmake --build . --target install \
-            cd ~/dev/llm \
-            git clone https://github.com/KhronosGroup/OpenCL-ICD-Loader && cd OpenCL-ICD-Loader \
-            mkdir build && cd build \
-            cmake .. -G Ninja ` \
-            -DCMAKE_BUILD_TYPE=Release ` \
-            -DCMAKE_PREFIX_PATH='HOME/dev/llm/opencl' ` \
-            -DCMAKE_INSTALL_PREFIX='HOME/dev/llm/opencl' \
-            cmake --build . --target install")
+        dockerfile.run("apt-get update && apt-get install -y git cmake ninja-build && \
+            cd /tmp && \
+            git clone https://github.com/KhronosGroup/OpenCL-Headers && \
+            cd OpenCL-Headers && \
+            mkdir build && cd build && \
+            cmake .. \
+                -DBUILD_TESTING=OFF \
+                -DOPENCL_HEADERS_BUILD_TESTING=OFF \
+                -DOPENCL_HEADERS_BUILD_CXX_TESTS=OFF \
+                -DCMAKE_INSTALL_PREFIX=/usr/local && \
+            cmake --build . --target install && \
+            cd /tmp && \
+            git clone https://github.com/KhronosGroup/OpenCL-ICD-Loader && \
+            cd OpenCL-ICD-Loader && \
+            mkdir build && cd build && \
+            cmake .. \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX=/usr/local && \
+            cmake --build . --target install && \
+            ldconfig && \
+            rm -rf /tmp/OpenCL-Headers /tmp/OpenCL-ICD-Loader && \
+            apt-get clean && rm -rf /var/lib/apt/lists/*")
 
     ## Note that this can break package dependencies
     ## Should be fine as long as we don't install too many things with pip...
