@@ -89,7 +89,7 @@ def install_pocl(dockerfile: Dockerfile, args: Any):
     if "nvidia" in args.image:
         pocl_switches += "-DENABLE_CUDA=ON "
 
-    if platform.processor() == "arm":
+    if platform.processor() == "aarch64":
         pocl_switches += "-DLLC_HOST_CPU=general "
 
     dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=/ {pocl_switches} .. && \
