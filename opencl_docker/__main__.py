@@ -167,6 +167,7 @@ def configure_user(dockerfile: Dockerfile):
 
 def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
     if "pytorch" not in args.tag:
+        dockerfile.run("pip install numpy --break-system-packages")
         return
 
     dockerfile.run("git clone --recurse-submodules https://github.com/KastnerRG/pytorch_dlprim.git /pytorch_dlprim")
