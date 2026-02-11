@@ -173,12 +173,31 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
 
     dockerfile.run("git clone --recurse-submodules https://github.com/KastnerRG/pytorch_dlprim.git /pytorch_dlprim")
     dockerfile.workdir("/pytorch_dlprim")
+    # install required opencl-headers to build the dlprim_pytorch for qualcomm since its not available out the door
+    if "qualcomm" in args.image:
+        dockerfile.run("mkdir -p ~/dev/llm \
+            cd ~/dev/llm \
+            git clone https://github.com/KhronosGroup/OpenCL-Headers && cd OpenCL-Headers \
+            mkdir build && cd build \
+            cmake .. -G Ninja ` \
+            -DBUILD_TESTING=OFF ` \
+            -DOPENCL_HEADERS_BUILD_TESTING=OFF ` \
+            -DOPENCL_HEADERS_BUILD_CXX_TESTS=OFF ` \
+            -DCMAKE_INSTALL_PREFIX='$HOME/dev/llm/opencl' \
+            cmake --build . --target install \
+            cd ~/dev/llm \
+            git clone https://github.com/KhronosGroup/OpenCL-ICD-Loader && cd OpenCL-ICD-Loader \
+            mkdir build && cd build \
+            cmake .. -G Ninja ` \
+            -DCMAKE_BUILD_TYPE=Release ` \
+            -DCMAKE_PREFIX_PATH='HOME/dev/llm/opencl' ` \
+            -DCMAKE_INSTALL_PREFIX='HOME/dev/llm/opencl' \
+            cmake --build . --target install")
+
     ## Note that this can break package dependencies
     ## Should be fine as long as we don't install too many things with pip...
     ## But we need to use pip here since torch is funky :(
     # last note, installing python-numpy on arm seems to break numpy dependency for torch...
-    # if "apple" in args.tag or "qcomm" in args.tag:
-    
     dockerfile.run("pip install numpy --break-system-packages")
     dockerfile.run("pip install pybind11[global] --break-system-packages")
     dockerfile.run("pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu --break-system-packages") # Do we have pip? / Do we want to give pip?
