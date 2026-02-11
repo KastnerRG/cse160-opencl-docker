@@ -177,7 +177,8 @@ def install_pytorch_ocl(dockerfile: Dockerfile, args):
     dockerfile.run("pip install pybind11[global] --break-system-packages")
     dockerfile.run("pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu --break-system-packages") # Do we have pip? / Do we want to give pip?
     
-    
+    dockerfile.run("echo $(python3 -c 'import torch;print(torch.utils.cmake_prefix_path)')")
+    dockerfile.run("echo $(python3 -c 'import pybind11;print(pybind11.get_cmake_dir())')")
     
     dockerfile.run("cd /pytorch_dlprim/dlprimitives  && \
         mkdir -p build && \
