@@ -174,6 +174,11 @@ def install_pytorch_ocl(dockerfile: Dockerfile, args):
     ## Note that this can break package dependencies
     ## Should be fine as long as we don't install too many things with pip...
     ## But we need to use pip here since torch is funky :(
+    # last note, installing python-numpy on arm seems to break numpy dependency for torch...
+    if "arm64" in args.platforms:
+        dockerfile.run("pip install numpy --break-system-packages")
+
+
     dockerfile.run("pip install pybind11[global] --break-system-packages")
     dockerfile.run("pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu --break-system-packages") # Do we have pip? / Do we want to give pip?
     
@@ -221,10 +226,14 @@ def main():
     install_intel_opencl(dockerfile)
     update_packages(dockerfile)
     install_dependencies(dockerfile, args)
+
+    install_pytorch_ocl(dockerfile, args)
+
+
     install_cuda_dsmlp(dockerfile, args)
     install_pocl(dockerfile, args)
     # install_cuda_drivers(dockerfile, args)
-    install_pytorch_ocl(dockerfile, args)
+    
     install_opencl_intercept_layer(dockerfile)
     install_cl_blast(dockerfile)
 
