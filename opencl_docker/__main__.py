@@ -78,11 +78,8 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
                     && apt-get clean && rm -rf /var/lib/apt/lists/*')
     
 def install_pocl(dockerfile: Dockerfile, args: Any):
-    # We'll install PoCL on everything.
     # Intel OpenCL driver doesn't support aarch64
     # PoCL has CUDA OpenCL support
-    if "intel" in args.tag: #PoCL conflicts with intel gpu driver
-        return
     dockerfile.run("git clone https://github.com/pocl/pocl.git /pocl")
     dockerfile.workdir("/pocl")
     dockerfile.run(f"git checkout {args.pocl_version} && mkdir build")
@@ -92,11 +89,8 @@ def install_pocl(dockerfile: Dockerfile, args: Any):
     if "nvidia" in args.image:
         pocl_switches += "-DENABLE_CUDA=ON "
 
-    if "apple-silicon" in args.tag:
-        pocl_switches += "-DLLC_HOST_CPU=cortex-a53 "
-
-    if "junkyard" in args.tag:
-        pocl_switches += "-DLLC_HOST_CPU=cortex-a78 "
+    if platform.processor() == "arm":
+        pocl_switches += "-DLLC_HOST_CPU=general "
 
     dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=/ {pocl_switches} .. && \
                      make -j && \
@@ -197,6 +191,8 @@ def main():
     parser.add_argument("-o", "--output", required=True, help="The output file for the Dockerfile.")
     parser.add_argument("-t", "--tag", required=True, help="The push tag for the Dockerfile.")
     parser.add_argument("-p", "--pocl_version", required=True, help="The version of pocl to install.")
+    parser.add_argument("-a", "--accelerator", required=True, help="The accelerator used in the docker container.")
+    parser.add_argument("-c", "--architecture", required=True, help="The architecture of the accelerator used in the docker container.")
 
     args = parser.parse_args()
 
@@ -206,7 +202,10 @@ def main():
     update_packages(dockerfile)
     install_dependencies(dockerfile, args)
     install_cuda_dsmlp(dockerfile, args)
-    install_pocl(dockerfile, args)
+
+    if args.architecture in ("cuda", "arm64"):
+        install_pocl(dockerfile, args)
+        
     # install_cuda_drivers(dockerfile, args)
     install_intelGPU_drivers(dockerfile, args)
     install_opencl_intercept_layer(dockerfile)

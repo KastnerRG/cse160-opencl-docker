@@ -11,14 +11,13 @@ jobs:
     strategy:
       matrix:
         docker: 
-          - {image: ubuntu, image_tag: 24.04, push_tag: cpu-amd64, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1}
-          - {image: ubuntu, image_tag: 24.04, push_tag: cpu-arm64, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
-          - {image: ubuntu, image_tag: 24.04, push_tag: apple-silicon, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
-          - {image: ghcr.io/kastnerrg/qualcomm-docker-base, image_tag: latest, push_tag: qcomm, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
-          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1}
-          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: dsmlp, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1}
-          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda-pytorch, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1}
-          - {image: ubuntu, image_tag: 22.04, push_tag: intel, platforms: linux/amd64, runs-on: ubuntu-22.04, pocl_version: v7.1}
+          - {image: ubuntu, image_tag: 24.04, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: cpu, architecture: x86_64, notes: ''}
+          - {image: ubuntu, image_tag: 24.04, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1, accelerator: cpu, architecture: arm64, notes: ''}
+          - {image: ghcr.io/kastnerrg/qualcomm-docker-base, image_tag: latest, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1, accelerator: gpu, architecture: adreno, notes: ''}
+          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: ''}
+          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: dsmlp, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: '-dsmlp'}
+          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda-pytorch, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: '-pytorch'}
+          - {image: ubuntu, image_tag: 22.04, push_tag: intel, platforms: linux/amd64, runs-on: ubuntu-22.04, pocl_version: v7.1, accelerator: gpu, architecture: intel, notes: ''}
 
 
     runs-on: ${{ matrix.docker.runs-on }}
@@ -41,7 +40,7 @@ jobs:
         python-version: '3.12'
     - name: Generate Dockerfile
       run: |
-        python -m opencl_docker --image ${{ matrix.docker.image }}:${{ matrix.docker.image_tag }} --tag ${{ matrix.docker.push_tag }} --pocl_version ${{ matrix.docker.pocl_version }} --output Dockerfile
+        python -m opencl_docker --image ${{ matrix.docker.image }}:${{ matrix.docker.image_tag }} --tag ${{ matrix.docker.accelerator }}-${{ matrix.docker.architecture }}${{ matrix.docker.notes }} --pocl_version ${{ matrix.docker.pocl_version }} --output Dockerfile
     -
       name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -58,6 +57,6 @@ jobs:
       with:
         context: .
         file: Dockerfile
-        tags: ghcr.io/kastnerrg/cse160-opencl:${{ matrix.docker.push_tag }}
+        tags: ghcr.io/kastnerrg/cse160-opencl:${{ matrix.docker.accelerator }}-${{ matrix.docker.architecture }}${{ matrix.docker.notes }}
         platforms: ${{ matrix.docker.platforms }}
         push: true
