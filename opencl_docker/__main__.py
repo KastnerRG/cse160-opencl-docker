@@ -69,6 +69,10 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
             "g++",
             "libopenblas-dev"
         ])
+    else:
+        dependencies.extend([
+            "python3-numpy"
+        ])
     
 
     # Ubuntu 22.04 needs ocl-icd from this PPA in order to support newer versions of POCL
@@ -168,7 +172,7 @@ def configure_user(dockerfile: Dockerfile):
 
 def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
     if "pytorch" not in args.tag:
-        dockerfile.run("pip install numpy --break-system-packages")
+        # dockerfile.run("pip install numpy --break-system-packages")
         return
 
     dockerfile.run("git clone --recurse-submodules https://github.com/KastnerRG/pytorch_dlprim.git /pytorch_dlprim")
