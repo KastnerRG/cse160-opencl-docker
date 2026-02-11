@@ -90,7 +90,7 @@ def install_pocl(dockerfile: Dockerfile, args: Any):
         pocl_switches += "-DENABLE_CUDA=ON "
 
     if platform.processor() == "aarch64":
-        pocl_switches += "-DLLC_HOST_CPU=general "
+        pocl_switches += "-DLLC_HOST_CPU=generic "
 
     dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=/ {pocl_switches} .. && \
                      make -j && \
