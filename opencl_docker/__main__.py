@@ -181,21 +181,29 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
             cd OpenCL-Headers && \
             mkdir build && cd build && \
             cmake .. \
-            -DBUILD_TESTING=OFF \
-            -DOPENCL_HEADERS_BUILD_TESTING=OFF \
-            -DOPENCL_HEADERS_BUILD_CXX_TESTS=OFF \
-            -DCMAKE_INSTALL_PREFIX=/usr && \
+                -DBUILD_TESTING=OFF \
+                -DOPENCL_HEADERS_BUILD_TESTING=OFF \
+                -DOPENCL_HEADERS_BUILD_CXX_TESTS=OFF \
+                -DCMAKE_INSTALL_PREFIX=/usr && \
+            cmake --build . --target install && \
+            cd /tmp && \
+            git clone https://github.com/KhronosGroup/OpenCL-CLHPP && \
+            cd OpenCL-CLHPP && \
+            mkdir build && cd build && \
+            cmake .. \
+                -DBUILD_TESTING=OFF \
+                -DCMAKE_INSTALL_PREFIX=/usr && \
             cmake --build . --target install && \
             cd /tmp && \
             git clone https://github.com/KhronosGroup/OpenCL-ICD-Loader && \
             cd OpenCL-ICD-Loader && \
             mkdir build && cd build && \
             cmake .. \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=/usr && \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX=/usr && \
             cmake --build . --target install && \
             ldconfig && \
-            rm -rf /tmp/OpenCL-Headers /tmp/OpenCL-ICD-Loader && \
+            rm -rf /tmp/OpenCL-Headers /tmp/OpenCL-CLHPP /tmp/OpenCL-ICD-Loader && \
             apt-get clean && rm -rf /var/lib/apt/lists/*")
 
     ## Note that this can break package dependencies
