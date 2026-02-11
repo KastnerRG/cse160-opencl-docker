@@ -191,8 +191,6 @@ def main():
     parser.add_argument("-o", "--output", required=True, help="The output file for the Dockerfile.")
     parser.add_argument("-t", "--tag", required=True, help="The push tag for the Dockerfile.")
     parser.add_argument("-p", "--pocl_version", required=True, help="The version of pocl to install.")
-    parser.add_argument("-a", "--accelerator", required=True, help="The accelerator used in the docker container.")
-    parser.add_argument("-c", "--architecture", required=True, help="The architecture of the accelerator used in the docker container.")
 
     args = parser.parse_args()
 
@@ -203,7 +201,7 @@ def main():
     install_dependencies(dockerfile, args)
     install_cuda_dsmlp(dockerfile, args)
 
-    if args.architecture in ("cuda", "arm64"):
+    if "arm64" in args.tag or "cuda" in args.tag:
         install_pocl(dockerfile, args)
         
     # install_cuda_drivers(dockerfile, args)
