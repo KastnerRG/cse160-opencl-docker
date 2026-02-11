@@ -40,6 +40,7 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
                     # "python3-numpy" installed via pip now
                 ]
     
+    #why does qualcomm not get normal headers?
     if "qualcomm" in args.image:
         dependencies.extend([
             "qcom-adreno-cl-dev"
