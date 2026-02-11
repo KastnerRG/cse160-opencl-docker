@@ -13,7 +13,7 @@ jobs:
       matrix:
         docker: 
           - {image: ubuntu, image_tag: 24.04, push_tag: cpu-amd64, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1}
-          - {image: ubuntu, image_tag: 24.04, push_tag: cpu-arm64, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
+          - {image: ubuntu, image_tag: 24.04, push_tag: cpu-arm64-pytorch, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
           - {image: ubuntu, image_tag: 24.04, push_tag: apple-silicon, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
           - {image: ubuntu, image_tag: 24.04, push_tag: apple-silicon-pytorch, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
           - {image: ghcr.io/kastnerrg/qualcomm-docker-base, image_tag: latest, push_tag: qcomm, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1}
@@ -62,4 +62,4 @@ jobs:
         file: Dockerfile
         tags: ghcr.io/kastnerrg/cse160-opencl:${{ matrix.docker.push_tag }}
         platforms: ${{ matrix.docker.platforms }}
-        push:
+        push: true
