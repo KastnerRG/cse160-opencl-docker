@@ -175,7 +175,7 @@ def install_pytorch_ocl(dockerfile: Dockerfile, args):
     ## Should be fine as long as we don't install too many things with pip...
     ## But we need to use pip here since torch is funky :(
     # last note, installing python-numpy on arm seems to break numpy dependency for torch...
-    if "arm64" in args.platforms:
+    if "apple" in args.tag or "qcomm" in args.tag:
         dockerfile.run("pip install numpy --break-system-packages")
 
 
