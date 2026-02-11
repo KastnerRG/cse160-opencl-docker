@@ -37,7 +37,7 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
                     "gdb",
                     "valgrind",
                     "oclgrind",
-                    "python3-numpy"
+                    # "python3-numpy" installed via pip now
                 ]
     
     if "qualcomm" in args.image:
@@ -165,7 +165,7 @@ def configure_user(dockerfile: Dockerfile):
                     echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ${HOME}/.bashrc")
     dockerfile.workdir("${HOME}")
 
-def install_pytorch_ocl(dockerfile: Dockerfile, args):
+def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
     if "pytorch" not in args.tag:
         return
 
@@ -175,10 +175,9 @@ def install_pytorch_ocl(dockerfile: Dockerfile, args):
     ## Should be fine as long as we don't install too many things with pip...
     ## But we need to use pip here since torch is funky :(
     # last note, installing python-numpy on arm seems to break numpy dependency for torch...
-    if "apple" in args.tag or "qcomm" in args.tag:
-        dockerfile.run("pip install numpy --break-system-packages")
-
-
+    # if "apple" in args.tag or "qcomm" in args.tag:
+    
+    dockerfile.run("pip install numpy --break-system-packages")
     dockerfile.run("pip install pybind11[global] --break-system-packages")
     dockerfile.run("pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu --break-system-packages") # Do we have pip? / Do we want to give pip?
     
@@ -226,10 +225,7 @@ def main():
     install_intel_opencl(dockerfile)
     update_packages(dockerfile)
     install_dependencies(dockerfile, args)
-
-    install_pytorch_ocl(dockerfile, args)
-
-
+    install_pytorch_ocl_and_numpy(dockerfile, args)
     install_cuda_dsmlp(dockerfile, args)
     install_pocl(dockerfile, args)
     # install_cuda_drivers(dockerfile, args)
