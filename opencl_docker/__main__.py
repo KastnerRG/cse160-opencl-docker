@@ -181,18 +181,18 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
             cd OpenCL-Headers && \
             mkdir build && cd build && \
             cmake .. \
-                -DBUILD_TESTING=OFF \
-                -DOPENCL_HEADERS_BUILD_TESTING=OFF \
-                -DOPENCL_HEADERS_BUILD_CXX_TESTS=OFF \
-                -DCMAKE_INSTALL_PREFIX=/usr/local && \
+            -DBUILD_TESTING=OFF \
+            -DOPENCL_HEADERS_BUILD_TESTING=OFF \
+            -DOPENCL_HEADERS_BUILD_CXX_TESTS=OFF \
+            -DCMAKE_INSTALL_PREFIX=/usr && \
             cmake --build . --target install && \
             cd /tmp && \
             git clone https://github.com/KhronosGroup/OpenCL-ICD-Loader && \
             cd OpenCL-ICD-Loader && \
             mkdir build && cd build && \
             cmake .. \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_INSTALL_PREFIX=/usr/local && \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr && \
             cmake --build . --target install && \
             ldconfig && \
             rm -rf /tmp/OpenCL-Headers /tmp/OpenCL-ICD-Loader && \
@@ -214,7 +214,8 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
         cd build && \
         cmake .. \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-        -DCMAKE_INSTALL_PREFIX=/usr/local && \
+        -DCMAKE_INSTALL_PREFIX=/usr/local \
+        -DOpenCL_INCLUDE_DIR=/usr/local/include && \
         make -j$(nproc) && \
         make install && \
         ldconfig")
