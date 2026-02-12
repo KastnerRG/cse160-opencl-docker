@@ -1,7 +1,6 @@
 name: Docker Image CI
 
-on:
-  push
+on:  push
   # push:
   #   branches: [ "main" ]
   # pull_request:
@@ -21,7 +20,7 @@ jobs:
 #           - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: ''}
 #           - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: dsmlp, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: '-dsmlp'}
           - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda-pytorch, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: '-pytorch'}
-          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: dsmlp-pytorch, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: '-dsmlp -pytorch'}
+          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: dsmlp-pytorch, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: '-dsmlp-pytorch'}
 #           - {image: ubuntu, image_tag: 22.04, push_tag: intel, platforms: linux/amd64, runs-on: ubuntu-22.04, pocl_version: v7.1, accelerator: gpu, architecture: intel, notes: ''}
           - {image: ubuntu, image_tag: 22.04, push_tag: intel-pytorch, platforms: linux/amd64, runs-on: ubuntu-22.04, pocl_version: v7.1, accelerator: gpu, architecture: intel, notes: '-pytorch'}
 
