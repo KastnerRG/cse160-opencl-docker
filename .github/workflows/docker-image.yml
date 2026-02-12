@@ -11,17 +11,17 @@ jobs:
     strategy:
       matrix:
         docker: 
-          - {image: ubuntu, image_tag: 24.04, push_tag: amd-pytorch, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: cpu, architecture: x86_64, notes: '-pytorch'}
-          - {image: ubuntu, image_tag: 24.04, push_tag: arm-pytorch, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1, accelerator: cpu, architecture: arm64, notes: '-pytorch'}
-#           - {image: ubuntu, image_tag: 24.04, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: cpu, architecture: x86_64, notes: ''}
-#           - {image: ubuntu, image_tag: 24.04, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1, accelerator: cpu, architecture: arm64, notes: ''}
-#           - {image: ghcr.io/kastnerrg/qualcomm-docker-base, push_tag: qcomm, image_tag: latest, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1, accelerator: gpu, architecture: adreno, notes: ''}
-          - {image: ghcr.io/kastnerrg/qualcomm-docker-base, push_tag: qcomm-pytorch, image_tag: latest, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1, accelerator: gpu, architecture: adreno, notes: '-pytorch'}
-#           - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: ''}
-#           - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: dsmlp, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: '-dsmlp'}
-          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda-pytorch, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: '-pytorch'}
-          - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: dsmlp-pytorch, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: '-dsmlp-pytorch'}
-#           - {image: ubuntu, image_tag: 22.04, push_tag: intel, platforms: linux/amd64, runs-on: ubuntu-22.04, pocl_version: v7.1, accelerator: gpu, architecture: intel, notes: ''}
+#           - {image: ubuntu, image_tag: 24.04, push_tag: amd-pytorch, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: cpu, architecture: x86_64, notes: '-pytorch'}
+#           - {image: ubuntu, image_tag: 24.04, push_tag: arm-pytorch, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1, accelerator: cpu, architecture: arm64, notes: '-pytorch'}
+# #           - {image: ubuntu, image_tag: 24.04, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: cpu, architecture: x86_64, notes: ''}
+# #           - {image: ubuntu, image_tag: 24.04, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1, accelerator: cpu, architecture: arm64, notes: ''}
+# #           - {image: ghcr.io/kastnerrg/qualcomm-docker-base, push_tag: qcomm, image_tag: latest, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1, accelerator: gpu, architecture: adreno, notes: ''}
+#           - {image: ghcr.io/kastnerrg/qualcomm-docker-base, push_tag: qcomm-pytorch, image_tag: latest, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1, accelerator: gpu, architecture: adreno, notes: '-pytorch'}
+# #           - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: ''}
+# #           - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: dsmlp, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: '-dsmlp'}
+#           - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda-pytorch, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: '-pytorch'}
+#           - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: dsmlp-pytorch, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: '-dsmlp-pytorch'}
+# #           - {image: ubuntu, image_tag: 22.04, push_tag: intel, platforms: linux/amd64, runs-on: ubuntu-22.04, pocl_version: v7.1, accelerator: gpu, architecture: intel, notes: ''}
           - {image: ubuntu, image_tag: 22.04, push_tag: intel-pytorch, platforms: linux/amd64, runs-on: ubuntu-22.04, pocl_version: v7.1, accelerator: gpu, architecture: intel, notes: '-pytorch'}
 
     runs-on: ${{ matrix.docker.runs-on }}

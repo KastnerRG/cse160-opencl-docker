@@ -242,9 +242,14 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
     ## Should be fine as long as we don't install too many things with pip...
     ## But we need to use pip here since torch is funky :(
     # last note, installing python-numpy on arm seems to break numpy dependency for torch...
-    dockerfile.run("pip install numpy --break-system-packages")
-    dockerfile.run("pip install pybind11[global] --break-system-packages")
-    dockerfile.run("pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu --break-system-packages") # Do we have pip? / Do we want to give pip?
+    if not "22.04" in args.image:
+        external_dep_handler = "--break-system-packages"
+    else:
+        external_dep_handler = ""
+
+    dockerfile.run(f"pip install numpy {external_dep_handler}")
+    dockerfile.run(f"pip install pybind11[global] {external_dep_handler}")
+    dockerfile.run(f"pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu {external_dep_handler}") # Do we have pip? / Do we want to give pip?
     
     dockerfile.run("echo $(python3 -c 'import torch;print(torch.utils.cmake_prefix_path)')")
     dockerfile.run("echo $(python3 -c 'import pybind11;print(pybind11.get_cmake_dir())')")
