@@ -91,7 +91,6 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
                     && apt-get clean && rm -rf /var/lib/apt/lists/*')
     
 def install_pocl(dockerfile: Dockerfile, args: Any):
-    # We'll install PoCL on everything.
     # Intel OpenCL driver doesn't support aarch64
     # PoCL has CUDA OpenCL support
     dockerfile.run("git clone https://github.com/pocl/pocl.git /pocl")
@@ -103,11 +102,8 @@ def install_pocl(dockerfile: Dockerfile, args: Any):
     if "nvidia" in args.image:
         pocl_switches += "-DENABLE_CUDA=ON "
 
-    if "apple-silicon" in args.tag:
-        pocl_switches += "-DLLC_HOST_CPU=cortex-a53 "
-
-    if "junkyard" in args.tag:
-        pocl_switches += "-DLLC_HOST_CPU=cortex-a78 "
+    if platform.processor() == "aarch64":
+        pocl_switches += "-DLLC_HOST_CPU=generic "
 
     dockerfile.run(f"cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_VALGRIND=ON -DCMAKE_INSTALL_PREFIX=/ {pocl_switches} .. && \
                      make -j && \
@@ -138,6 +134,32 @@ def install_cuda_drivers(dockerfile: Dockerfile, args: Any):
             "NVIDIA_VISIBLE_DEVICES": "all",
             "NVIDIA_DRIVER_CAPABILITIES": "compute,utility"
         })
+
+def install_intelGPU_drivers(dockerfile: Dockerfile, args: Any):
+    if "intel" in args.tag:
+        if "22.04" in args.image:
+            dockerfile.run('apt-get install -y gpg-agent wget')
+            dockerfile.run('wget -qO - https://repositories.intel.com/graphics/intel-graphics.key |\
+                            gpg --dearmor --output /usr/share/keyrings/intel-graphics.gpg')
+            dockerfile.run("echo 'deb [arch=amd64,i386 signed-by=/usr/share/keyrings/intel-graphics.gpg]\
+                            https://repositories.intel.com/graphics/ubuntu jammy arc' | \
+                            tee  /etc/apt/sources.list.d/intel.gpu.jammy.list")
+            dockerfile.run('apt-get update')
+            dockerfile.run('apt-get install -y \
+                            intel-opencl-icd intel-level-zero-gpu level-zero \
+                            intel-media-va-driver-non-free libmfx1 libmfxgen1 libvpl2 \
+                            libegl-mesa0 libegl1-mesa libegl1-mesa-dev libgbm1 libgl1-mesa-dev libgl1-mesa-dri \
+                            libglapi-mesa libgles2-mesa-dev libglx-mesa0 libigdgmm12 libxatracker2 mesa-va-drivers \
+                            mesa-vdpau-drivers mesa-vulkan-drivers va-driver-all')
+            # Dev libraries
+            dockerfile.run('apt-get install -y \
+                            libigc-dev \
+                            intel-igc-cm \
+                            libigdfcl-dev \
+                            libigfxcmrt-dev \
+                            level-zero-dev')
+        else:
+            print("Intel GPU drivers do not currently support 24.04 in WSL")
     
 def install_opencl_intercept_layer(dockerfile: Dockerfile):
     dockerfile.run("git clone https://github.com/intel/opencl-intercept-layer.git /opencl-intercept-layer")
@@ -161,7 +183,7 @@ def install_cl_blast(dockerfile: Dockerfile):
                     make install && \
                     rm -rf /clblast")
 
-def configure_user(dockerfile: Dockerfile):
+def configure_user(dockerfile: Dockerfile, args: Any):
     dockerfile.user("ubuntu")
     dockerfile.env(HOME="/home/ubuntu")
     dockerfile.run("mkdir -p ${HOME} && \
@@ -169,6 +191,12 @@ def configure_user(dockerfile: Dockerfile):
                     chown -R ubuntu:ubuntu ${HOME} && \
                     echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ${HOME}/.bashrc")
     dockerfile.workdir("${HOME}")
+    
+    if "intel" in args.tag:
+        dockerfile.userswitch("root")
+        dockerfile.run('addgroup render')
+        dockerfile.run("usermod -a -G render,video ubuntu")
+        dockerfile.userswitch("ubuntu")
 
 def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
     if "pytorch" not in args.tag:
@@ -244,10 +272,6 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
 
     dockerfile.run("rm -rf /pytorch_dlprim")
     dockerfile.env(PYTHONPATH="/usr/local/python")
-    
-
-
-
 
 def main():
     parser = ArgumentParser("opencl-docker")
@@ -265,13 +289,16 @@ def main():
     install_dependencies(dockerfile, args)
     install_pytorch_ocl_and_numpy(dockerfile, args)
     install_cuda_dsmlp(dockerfile, args)
-    install_pocl(dockerfile, args)
+
+    if "arm64" in args.tag or "cuda" in args.tag:
+        install_pocl(dockerfile, args)
+        
     # install_cuda_drivers(dockerfile, args)
-    
+    install_intelGPU_drivers(dockerfile, args)
     install_opencl_intercept_layer(dockerfile)
     install_cl_blast(dockerfile)
 
-    configure_user(dockerfile)
+    configure_user(dockerfile, args)
     
     dockerfile.cmd("/bin/bash")
 
