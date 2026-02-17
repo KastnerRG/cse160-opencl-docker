@@ -250,7 +250,7 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
     dockerfile.run(f"pip install numpy {external_dep_handler}")
     dockerfile.run(f"pip install pybind11[global] {external_dep_handler}")
     dockerfile.run(f"pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu {external_dep_handler}") # Do we have pip? / Do we want to give pip?
-    dockerfile.run(f"pip install datasets==3.6.0 pillow transformers timm {external_dep_handler}")
+    dockerfile.run(f"pip install datasets==3.6.0 pillow transformers timm librosa {external_dep_handler}")
 
     dockerfile.run("echo $(python3 -c 'import torch;print(torch.utils.cmake_prefix_path)')")
     dockerfile.run("echo $(python3 -c 'import pybind11;print(pybind11.get_cmake_dir())')")
