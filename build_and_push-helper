@@ -1,0 +1,12 @@
+#! /bin/bash
+
+IMAGE=$1
+TAG=$2
+POCL_VERSION=$3
+PLATFORM=$4
+
+python3 -m opencl_docker --image $IMAGE --tag $TAG --pocl_version $POCL_VERSION --output Dockerfile
+docker build --no-cache --platform=$PLATFORM --tag ghcr.io/kastnerrg/cse160-opencl:$TAG .
+rm Dockerfile
+
+# docker push ghcr.io/kastnerrg/cse160-opencl:$TAG

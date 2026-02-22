@@ -193,8 +193,6 @@ def configure_user(dockerfile: Dockerfile, args: Any):
         dockerfile.userswitch("ubuntu")
 
 def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
-    dockerfile.run("git clone --recurse-submodules https://github.com/KastnerRG/pytorch_dlprim.git /pytorch_dlprim")
-    dockerfile.workdir("/pytorch_dlprim")
     # Install required opencl-headers to build the dlprim_pytorch for Qualcomm since its not available out the door
     if "qualcomm" in args.image:
         dockerfile.run("apt-get update && apt-get install -y git cmake ninja-build && \
@@ -237,13 +235,13 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
     else:
         external_dep_handler = ""
 
-    dockerfile.run(f"pip install numpy {external_dep_handler}")
-    dockerfile.run(f"pip install pybind11[global] {external_dep_handler}")
-    dockerfile.run(f"pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu {external_dep_handler}") # Do we have pip? / Do we want to give pip?
-    dockerfile.run(f"pip install datasets==3.6.0 pillow transformers timm librosa {external_dep_handler}")
-
-    dockerfile.run("echo $(python3 -c 'import torch;print(torch.utils.cmake_prefix_path)')")
-    dockerfile.run("echo $(python3 -c 'import pybind11;print(pybind11.get_cmake_dir())')")
+    dockerfile.run(f"pip install numpy {external_dep_handler} && \
+                    pip install pybind11[global] {external_dep_handler} && \
+                    pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu {external_dep_handler} && \
+                    pip install datasets==3.6.0 pillow transformers timm librosa {external_dep_handler}")
+    
+    dockerfile.run("git clone --recurse-submodules https://github.com/KastnerRG/pytorch_dlprim.git /pytorch_dlprim")
+    dockerfile.workdir("/pytorch_dlprim")
     
     dockerfile.run("cd /pytorch_dlprim/dlprimitives  && \
         mkdir -p build && \
@@ -280,6 +278,7 @@ def main():
 
     dockerfile = Dockerfile(args.image)
 
+    dockerfile.env(IMAGE=args.image, TAG=args.tag)
     install_intel_opencl(dockerfile)
     update_packages(dockerfile)
     install_dependencies(dockerfile, args)

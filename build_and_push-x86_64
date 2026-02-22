@@ -1,0 +1,13 @@
+#! /bin/bash
+
+#   - {image: ubuntu, image_tag: 24.04, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: cpu, architecture: x86_64, notes: ''}
+#   - {image: ubuntu, image_tag: 24.04, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1, accelerator: cpu, architecture: arm64, notes: ''}
+#   - {image: ghcr.io/kastnerrg/qualcomm-docker-base, push_tag: qcomm, image_tag: latest, platforms: linux/arm64, runs-on: ubuntu-24.04-arm, pocl_version: v7.1, accelerator: gpu, architecture: adreno, notes: ''}
+#   - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: ''}
+#   - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: dsmlp, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: '-dsmlp'}
+#   - {image: ubuntu, image_tag: 22.04, push_tag: intel, platforms: linux/amd64, runs-on: ubuntu-22.04, pocl_version: v7.1, accelerator: gpu, architecture: intel, notes: ''}
+
+# python3 -m opencl_docker --image smartcycling.sysnet.ucsd.edu:45050/junkyard-computing/pixelfold-docker --tag gpu-mali --pocl_version v7.1 --output Dockerfile
+# docker build --no-cache --platform=linux/arm64 --tag $CI_REGISTRY_IMAGE:gpu-mali .
+
+./build_and_push-helper ubuntu:24.04 cpu-x86_64 v7.1 linux/amd64
