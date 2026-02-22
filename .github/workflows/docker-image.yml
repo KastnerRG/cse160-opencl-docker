@@ -58,3 +58,12 @@ jobs:
         tags: ghcr.io/kastnerrg/cse160-opencl:${{ matrix.docker.accelerator }}-${{ matrix.docker.architecture }}${{ matrix.docker.notes }}
         platforms: ${{ matrix.docker.platforms }}
         push: ${{ github.event_name == 'push' }}
+
+    # Compatibility tags for specific use cases (e.g. DSMLP)
+    - name: Add dsmlp tag and push
+      if: ${{ matrix.docker.notes == '-dsmlp' }}
+      run: |
+        IMAGE=ghcr.io/kastnerrg/cse160-opencl:${{ matrix.docker.accelerator }}-${{ matrix.docker.architecture }}${{ matrix.docker.notes }}
+        docker pull "$IMAGE"
+        docker tag "$IMAGE" ghcr.io/kastnerrg/cse160-opencl:dsmlp
+        docker push ghcr.io/kastnerrg/cse160-opencl:dsmlp
