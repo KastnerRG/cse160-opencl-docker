@@ -199,6 +199,7 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
             cd /tmp && \
             git clone https://github.com/KhronosGroup/OpenCL-Headers && \
             cd OpenCL-Headers && \
+            git checkout v2025.07.22 && \
             mkdir build && cd build && \
             cmake .. \
                 -DBUILD_TESTING=OFF \
@@ -209,6 +210,7 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
             cd /tmp && \
             git clone https://github.com/KhronosGroup/OpenCL-ICD-Loader && \
             cd OpenCL-ICD-Loader && \
+            git checkout v2025.07.22 && \
             mkdir build && cd build && \
             cmake .. \
                 -DCMAKE_BUILD_TYPE=Release \
@@ -217,6 +219,7 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
             cd /tmp && \
             git clone https://github.com/KhronosGroup/OpenCL-CLHPP && \
             cd OpenCL-CLHPP && \
+            git checkout v2025.07.22 && \
             mkdir build && cd build && \
             cmake .. \
                 -DBUILD_TESTING=OFF \
@@ -242,8 +245,9 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
     
     dockerfile.run("git clone --recurse-submodules https://github.com/KastnerRG/pytorch_dlprim.git /pytorch_dlprim")
     dockerfile.workdir("/pytorch_dlprim")
-    
-    dockerfile.run("cd /pytorch_dlprim/dlprimitives  && \
+
+    dockerfile.run("git checkout 45d5f0e93470e73f75322719b7fef0f5785ed454 && \
+        cd /pytorch_dlprim/dlprimitives  && \
         mkdir -p build && \
         cd build && \
         cmake .. \
