@@ -37,10 +37,9 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
                     "gdb",
                     "valgrind",
                     "oclgrind",
-                    # "python3-numpy" installed via pip now
                 ]
     
-    #why does qualcomm not get normal headers?
+    # Why does qualcomm not get normal headers?
     if "qualcomm" in args.image:
         dependencies.extend([
             "qcom-adreno-cl-dev"
@@ -58,21 +57,16 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
             "netcat-openbsd"
         ])
 
-    if "pytorch" in args.tag:
-        dependencies.extend([
-            "python3",
-            "python3-dev",
-            "python3-pip",
-            "sqlite3",
-            "ca-certificates",
-            "libsqlite3-dev",
-            "g++",
-            "libopenblas-dev"
-        ])
-    else:
-        dependencies.extend([
-            "python3-numpy"
-        ])
+    dependencies.extend([
+        "python3",
+        "python3-dev",
+        "python3-pip",
+        "sqlite3",
+        "ca-certificates",
+        "libsqlite3-dev",
+        "g++",
+        "libopenblas-dev"
+    ])
     
 
     # Ubuntu 22.04 needs ocl-icd from this PPA in order to support newer versions of POCL
@@ -199,13 +193,9 @@ def configure_user(dockerfile: Dockerfile, args: Any):
         dockerfile.userswitch("ubuntu")
 
 def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
-    if "pytorch" not in args.tag:
-        # dockerfile.run("pip install numpy --break-system-packages")
-        return
-
     dockerfile.run("git clone --recurse-submodules https://github.com/KastnerRG/pytorch_dlprim.git /pytorch_dlprim")
     dockerfile.workdir("/pytorch_dlprim")
-    # install required opencl-headers to build the dlprim_pytorch for qualcomm since its not available out the door
+    # Install required opencl-headers to build the dlprim_pytorch for Qualcomm since its not available out the door
     if "qualcomm" in args.image:
         dockerfile.run("apt-get update && apt-get install -y git cmake ninja-build && \
             cd /tmp && \
