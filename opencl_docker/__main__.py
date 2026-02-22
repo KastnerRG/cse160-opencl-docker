@@ -37,9 +37,9 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
                     "gdb",
                     "valgrind",
                     "oclgrind",
-                    "python3-numpy"
                 ]
     
+    # Why does qualcomm not get normal headers?
     if "qualcomm" in args.image:
         dependencies.extend([
             "qcom-adreno-cl-dev"
@@ -57,10 +57,17 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
             "netcat-openbsd"
         ])
 
-    if "pytorch" in args.tag:
-        dependencies.extend([
-            "python3-dev"
-        ])
+    dependencies.extend([
+        "python3",
+        "python3-dev",
+        "python3-pip",
+        "sqlite3",
+        "ca-certificates",
+        "libsqlite3-dev",
+        "g++",
+        "libopenblas-dev"
+    ])
+    
 
     # Ubuntu 22.04 needs ocl-icd from this PPA in order to support newer versions of POCL
     if "22.04" in args.image:
@@ -178,12 +185,91 @@ def configure_user(dockerfile: Dockerfile, args: Any):
                     chown -R ubuntu:ubuntu ${HOME} && \
                     echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ${HOME}/.bashrc")
     dockerfile.workdir("${HOME}")
-
+    
     if "intel" in args.tag:
         dockerfile.userswitch("root")
         dockerfile.run('addgroup render')
         dockerfile.run("usermod -a -G render,video ubuntu")
         dockerfile.userswitch("ubuntu")
+
+def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
+    # Install required opencl-headers to build the dlprim_pytorch for Qualcomm since its not available out the door
+    if "qualcomm" in args.image:
+        dockerfile.run("apt-get update && apt-get install -y git cmake ninja-build && \
+            cd /tmp && \
+            git clone https://github.com/KhronosGroup/OpenCL-Headers && \
+            cd OpenCL-Headers && \
+            git checkout v2025.07.22 && \
+            mkdir build && cd build && \
+            cmake .. \
+                -DBUILD_TESTING=OFF \
+                -DOPENCL_HEADERS_BUILD_TESTING=OFF \
+                -DOPENCL_HEADERS_BUILD_CXX_TESTS=OFF \
+                -DCMAKE_INSTALL_PREFIX=/usr && \
+            cmake --build . --target install && \
+            cd /tmp && \
+            git clone https://github.com/KhronosGroup/OpenCL-ICD-Loader && \
+            cd OpenCL-ICD-Loader && \
+            git checkout v2025.07.22 && \
+            mkdir build && cd build && \
+            cmake .. \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX=/usr && \
+            cmake --build . --target install && \
+            cd /tmp && \
+            git clone https://github.com/KhronosGroup/OpenCL-CLHPP && \
+            cd OpenCL-CLHPP && \
+            git checkout v2025.07.22 && \
+            mkdir build && cd build && \
+            cmake .. \
+                -DBUILD_TESTING=OFF \
+                -DCMAKE_INSTALL_PREFIX=/usr && \
+            cmake --build . --target install && \
+            ldconfig && \
+            rm -rf /tmp/OpenCL-Headers /tmp/OpenCL-ICD-Loader /tmp/OpenCL-CLHPP && \
+            apt-get clean && rm -rf /var/lib/apt/lists/*")
+
+    ## Note that this can break package dependencies
+    ## Should be fine as long as we don't install too many things with pip...
+    ## But we need to use pip here since torch is funky :(
+    # last note, installing python-numpy on arm seems to break numpy dependency for torch...
+    if not "22.04" in args.image:
+        external_dep_handler = "--break-system-packages"
+    else:
+        external_dep_handler = ""
+
+    dockerfile.run(f"pip install numpy {external_dep_handler} && \
+                    pip install pybind11[global] {external_dep_handler} && \
+                    pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu {external_dep_handler} && \
+                    pip install datasets==3.6.0 pillow transformers timm librosa {external_dep_handler}")
+    
+    dockerfile.run("git clone --recurse-submodules https://github.com/KastnerRG/pytorch_dlprim.git /pytorch_dlprim")
+    dockerfile.workdir("/pytorch_dlprim")
+
+    dockerfile.run("git checkout 45d5f0e93470e73f75322719b7fef0f5785ed454 && \
+        cd /pytorch_dlprim/dlprimitives  && \
+        mkdir -p build && \
+        cd build && \
+        cmake .. \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+        -DCMAKE_INSTALL_PREFIX=/usr/local \
+        -DOpenCL_INCLUDE_DIR=/usr/local/include && \
+        make -j$(nproc) && \
+        make install && \
+        ldconfig")
+
+    dockerfile.run('''cd /pytorch_dlprim && \
+        mkdir -p build && \
+        cd build && \
+        cmake .. \
+        -DCMAKE_PREFIX_PATH="$(python3 -c 'import torch;print(torch.utils.cmake_prefix_path)');$(python3 -c 'import pybind11;print(pybind11.get_cmake_dir())')" \
+        -DCMAKE_INSTALL_PREFIX=/usr/local && \
+        make -j$(nproc) && \
+        make install && \
+        ldconfig''')
+
+    dockerfile.run("rm -rf /pytorch_dlprim")
+    dockerfile.env(PYTHONPATH="/usr/local/python")
 
 def main():
     parser = ArgumentParser("opencl-docker")
@@ -196,9 +282,11 @@ def main():
 
     dockerfile = Dockerfile(args.image)
 
+    dockerfile.env(IMAGE=args.image, TAG=args.tag)
     install_intel_opencl(dockerfile)
     update_packages(dockerfile)
     install_dependencies(dockerfile, args)
+    install_pytorch_ocl_and_numpy(dockerfile, args)
     install_cuda_dsmlp(dockerfile, args)
 
     if "arm64" in args.tag or "cuda" in args.tag:
