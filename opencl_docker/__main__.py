@@ -238,7 +238,7 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
     else:
         external_dep_handler = ""
 
-    dockerfile.run(f"pip install numpy==2.4.2 {external_dep_handler} && \
+    dockerfile.run(f"pip install numpy==2.2.6 {external_dep_handler} && \
                     pip install pybind11[global]==3.0.2 {external_dep_handler} && \
                     pip install torch==2.10.0+cpu torchvision==0.25.0+cpu --index-url https://download.pytorch.org/whl/cpu {external_dep_handler} && \
                     pip install datasets==3.6.0 pillow==12.0.0 transformers==5.2.0 timm==1.0.24 librosa==0.11.0 {external_dep_handler}")

@@ -10,4 +10,6 @@
 # python3 -m opencl_docker --image smartcycling.sysnet.ucsd.edu:45050/junkyard-computing/pixelfold-docker --tag gpu-mali --pocl_version v7.1 --output Dockerfile
 # docker build --no-cache --platform=linux/arm64 --tag $CI_REGISTRY_IMAGE:gpu-mali .
 
-./build_and_push-helper ubuntu:24.04 cpu-x86_64 v7.1 linux/amd64
+# ./build_and_push-helper ubuntu:24.04 cpu-x86_64 v7.1 linux/amd64
+
+./build_and_push-helper ubuntu:22.04 gpu-intel v7.1 linux/amd64
