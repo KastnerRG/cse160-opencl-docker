@@ -17,6 +17,7 @@ jobs:
           - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: cuda, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: ''}
           - {image: nvidia/cuda, image_tag: 12.6.3-cudnn-devel-ubuntu24.04, push_tag: dsmlp, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: cuda, notes: '-dsmlp'}
           - {image: ubuntu, image_tag: 22.04, push_tag: intel, platforms: linux/amd64, runs-on: ubuntu-22.04, pocl_version: v7.1, accelerator: gpu, architecture: intel, notes: ''}
+          - {image: rocm/dev-ubuntu-24.04, image_tag: 7.1.1-complete, push_tag: rocm, platforms: linux/amd64, runs-on: ubuntu-24.04, pocl_version: v7.1, accelerator: gpu, architecture: rocm, notes: ''}
 
     runs-on: ${{ matrix.docker.runs-on }}
     
