@@ -193,41 +193,42 @@ def configure_user(dockerfile: Dockerfile, args: Any):
         dockerfile.userswitch("ubuntu")
 
 def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
+    # TODO Fix this so it works with the opencl-headers in qualcomm
     # Install required opencl-headers to build the dlprim_pytorch for Qualcomm since its not available out the door
-    if "qualcomm" in args.image:
-        dockerfile.run("apt-get update && apt-get install -y git cmake ninja-build && \
-            cd /tmp && \
-            git clone https://github.com/KhronosGroup/OpenCL-Headers && \
-            cd OpenCL-Headers && \
-            git checkout v2025.07.22 && \
-            mkdir build && cd build && \
-            cmake .. \
-                -DBUILD_TESTING=OFF \
-                -DOPENCL_HEADERS_BUILD_TESTING=OFF \
-                -DOPENCL_HEADERS_BUILD_CXX_TESTS=OFF \
-                -DCMAKE_INSTALL_PREFIX=/usr && \
-            cmake --build . --target install && \
-            cd /tmp && \
-            git clone https://github.com/KhronosGroup/OpenCL-ICD-Loader && \
-            cd OpenCL-ICD-Loader && \
-            git checkout v2025.07.22 && \
-            mkdir build && cd build && \
-            cmake .. \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DCMAKE_INSTALL_PREFIX=/usr && \
-            cmake --build . --target install && \
-            cd /tmp && \
-            git clone https://github.com/KhronosGroup/OpenCL-CLHPP && \
-            cd OpenCL-CLHPP && \
-            git checkout v2025.07.22 && \
-            mkdir build && cd build && \
-            cmake .. \
-                -DBUILD_TESTING=OFF \
-                -DCMAKE_INSTALL_PREFIX=/usr && \
-            cmake --build . --target install && \
-            ldconfig && \
-            rm -rf /tmp/OpenCL-Headers /tmp/OpenCL-ICD-Loader /tmp/OpenCL-CLHPP && \
-            apt-get clean && rm -rf /var/lib/apt/lists/*")
+    # if "qualcomm" in args.image:
+        # dockerfile.run("apt-get update && apt-get install -y git cmake ninja-build && \
+        #     cd /tmp && \
+        #     git clone https://github.com/KhronosGroup/OpenCL-Headers && \
+        #     cd OpenCL-Headers && \
+        #     git checkout v2025.07.22 && \
+        #     mkdir build && cd build && \
+        #     cmake .. \
+        #         -DBUILD_TESTING=OFF \
+        #         -DOPENCL_HEADERS_BUILD_TESTING=OFF \
+        #         -DOPENCL_HEADERS_BUILD_CXX_TESTS=OFF \
+        #         -DCMAKE_INSTALL_PREFIX=/usr && \
+        #     cmake --build . --target install && \
+        #     cd /tmp && \
+        #     git clone https://github.com/KhronosGroup/OpenCL-ICD-Loader && \
+        #     cd OpenCL-ICD-Loader && \
+        #     git checkout v2025.07.22 && \
+        #     mkdir build && cd build && \
+        #     cmake .. \
+        #         -DCMAKE_BUILD_TYPE=Release \
+        #         -DCMAKE_INSTALL_PREFIX=/usr && \
+        #     cmake --build . --target install && \
+        #     cd /tmp && \
+        #     git clone https://github.com/KhronosGroup/OpenCL-CLHPP && \
+        #     cd OpenCL-CLHPP && \
+        #     git checkout v2025.07.22 && \
+        #     mkdir build && cd build && \
+        #     cmake .. \
+        #         -DBUILD_TESTING=OFF \
+        #         -DCMAKE_INSTALL_PREFIX=/usr && \
+        #     cmake --build . --target install && \
+        #     ldconfig && \
+        #     rm -rf /tmp/OpenCL-Headers /tmp/OpenCL-ICD-Loader /tmp/OpenCL-CLHPP && \
+        #     apt-get clean && rm -rf /var/lib/apt/lists/*")
 
     ## Note that this can break package dependencies
     ## Should be fine as long as we don't install too many things with pip...
@@ -243,32 +244,35 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
                     pip install torch==2.10.0+cpu torchvision==0.25.0+cpu --index-url https://download.pytorch.org/whl/cpu {external_dep_handler} && \
                     pip install datasets==3.6.0 pillow==12.0.0 transformers==5.2.0 timm==1.0.24 librosa==0.11.0 {external_dep_handler}")
     
-    dockerfile.run("git clone --recurse-submodules https://github.com/KastnerRG/pytorch_dlprim.git /pytorch_dlprim")
-    dockerfile.workdir("/pytorch_dlprim")
+    #TODO Get dlprim working with the Qualcomm-spefific OpenCL Library
+    if "qualcomm" not in args.image:
+        dockerfile.run("git clone --recurse-submodules https://github.com/KastnerRG/pytorch_dlprim.git /pytorch_dlprim")
+        dockerfile.workdir("/pytorch_dlprim")
 
-    dockerfile.run("git checkout 45d5f0e93470e73f75322719b7fef0f5785ed454 && \
-        cd /pytorch_dlprim/dlprimitives  && \
-        mkdir -p build && \
-        cd build && \
-        cmake .. \
-        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-        -DCMAKE_INSTALL_PREFIX=/usr/local \
-        -DOpenCL_INCLUDE_DIR=/usr/local/include && \
-        make -j$(nproc) && \
-        make install && \
-        ldconfig")
+        dockerfile.run("git checkout 45d5f0e93470e73f75322719b7fef0f5785ed454 && \
+            cd /pytorch_dlprim/dlprimitives  && \
+            mkdir -p build && \
+            cd build && \
+            cmake .. \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_INSTALL_PREFIX=/usr/local \
+            -DOpenCL_INCLUDE_DIR=/usr/local/include && \
+            make -j$(nproc) && \
+            make install && \
+            ldconfig")
 
-    dockerfile.run('''cd /pytorch_dlprim && \
-        mkdir -p build && \
-        cd build && \
-        cmake .. \
-        -DCMAKE_PREFIX_PATH="$(python3 -c 'import torch;print(torch.utils.cmake_prefix_path)');$(python3 -c 'import pybind11;print(pybind11.get_cmake_dir())')" \
-        -DCMAKE_INSTALL_PREFIX=/usr/local && \
-        make -j$(nproc) && \
-        make install && \
-        ldconfig''')
+        dockerfile.run('''cd /pytorch_dlprim && \
+            mkdir -p build && \
+            cd build && \
+            cmake .. \
+            -DCMAKE_PREFIX_PATH="$(python3 -c 'import torch;print(torch.utils.cmake_prefix_path)');$(python3 -c 'import pybind11;print(pybind11.get_cmake_dir())')" \
+            -DCMAKE_INSTALL_PREFIX=/usr/local && \
+            make -j$(nproc) && \
+            make install && \
+            ldconfig''')
 
-    dockerfile.run("rm -rf /pytorch_dlprim")
+        dockerfile.run("rm -rf /pytorch_dlprim")
+    
     dockerfile.env(PYTHONPATH="/usr/local/python")
 
 def main():
