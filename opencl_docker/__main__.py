@@ -229,7 +229,7 @@ def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
             rm -rf /tmp/OpenCL-Headers /tmp/OpenCL-ICD-Loader /tmp/OpenCL-CLHPP && \
             apt-get clean && rm -rf /var/lib/apt/lists/* && \
             mkdir -p /etc/OpenCL/vendors && \
-            echo '/usr/lib/aarch64-linux-gnu/libOpenCL_adreno.so' > /etc/OpenCL/vendors/adreno.icd")
+            echo '/usr/lib/aarch64-linux-gnu/libOpenCL_adreno.so.1.0.0' > /etc/OpenCL/vendors/adreno.icd")
 
     ## Note that this can break package dependencies
     ## Should be fine as long as we don't install too many things with pip...
