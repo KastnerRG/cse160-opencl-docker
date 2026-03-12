@@ -186,9 +186,9 @@ def configure_user(dockerfile: Dockerfile, args: Any):
                     echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ${HOME}/.bashrc")
     dockerfile.workdir("${HOME}")
     
-    if "intel" in args.tag:
+    if "intel" in args.tag or "rocm" in args.tag:
         dockerfile.userswitch("root")
-        dockerfile.run('addgroup render')
+        if "rocm" not in args.tag: dockerfile.run('addgroup render')
         dockerfile.run("usermod -a -G render,video ubuntu")
         dockerfile.userswitch("ubuntu")
 
@@ -291,7 +291,7 @@ def main():
     install_pytorch_ocl_and_numpy(dockerfile, args)
     install_cuda_dsmlp(dockerfile, args)
 
-    if "arm64" in args.tag or "cuda" in args.tag:
+    if ("arm64" in args.tag or "cuda" in args.tag) and not "rocm" in args.tag:
         install_pocl(dockerfile, args)
         
     # install_cuda_drivers(dockerfile, args)
