@@ -7,7 +7,9 @@ def update_packages(dockerfile: Dockerfile):
     dockerfile.run("apt-get update && apt-get upgrade -y && \
                     apt-get clean && rm -rf /var/lib/apt/lists/*")
     
-def install_intel_opencl(dockerfile: Dockerfile):
+def install_intel_opencl(dockerfile: Dockerfile, args: Any = None):
+    if args and ("rocm" in args.tag or "rocm" in args.image):
+        return
     if platform.processor() == "x86_64":
         dockerfile.run('apt-get update && apt-get -y install wget gnupg2 && \
                         wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
@@ -63,6 +65,7 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
         "python3-pip",
         "sqlite3",
         "ca-certificates",
+        "curl",
         "libsqlite3-dev",
         "g++",
         "libopenblas-dev"
@@ -82,6 +85,7 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
                     echo "deb http://apt.llvm.org/{ubuntu_name}/ llvm-toolchain-{ubuntu_name}-20 main" | tee /etc/apt/sources.list.d/llvm-toolchain-{ubuntu_name}.list && \
                     wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
                     apt-get update && apt-get install -y {" ".join(dependencies)} \
+                    && mkdir -p /usr/local/include && ([ -d /usr/include/CL ] && ln -sfn /usr/include/CL /usr/local/include/CL || true) \
                     && apt-get clean && rm -rf /var/lib/apt/lists/*')
     
 def install_pocl(dockerfile: Dockerfile, args: Any):
@@ -177,6 +181,64 @@ def install_cl_blast(dockerfile: Dockerfile):
                     make install && \
                     rm -rf /clblast")
 
+def install_rocm_drivers(dockerfile: Dockerfile, args: Any):
+    if "rocm" in args.tag or "rocm" in args.image:
+        ubuntu_name = "jammy" if "22.04" in args.image else "noble"
+        rocdxg_version = getattr(args, "rocdxg_version", "1.2.2")
+
+        # If base image does not already contain ROCm, install ROCm packages from AMD repository
+        if "rocm" not in args.image:
+            dockerfile.run(
+                f'apt-get update && apt-get install -y wget gnupg2 ca-certificates curl && '
+                f'mkdir -p /etc/apt/keyrings && '
+                f'wget -qO - https://repo.radeon.com/rocm/rocm.gpg.key | gpg --dearmor --yes -o /etc/apt/keyrings/rocm.gpg && '
+                f'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/7.2.1 {ubuntu_name} main" > /etc/apt/sources.list.d/rocm.list && '
+                f'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/amdgpu/30.30.2/ubuntu {ubuntu_name} main" > /etc/apt/sources.list.d/amdgpu.list && '
+                f'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/graphics/7.2.1/ubuntu {ubuntu_name} main" >> /etc/apt/sources.list.d/rocm.list && '
+                f'apt-get update && '
+                f'DEBIAN_FRONTEND=noninteractive apt-get install -y rocm-opencl-sdk rocm-core clinfo && '
+                f'apt-get clean && rm -rf /var/lib/apt/lists/*'
+            )
+
+        # Install librocdxg (ROCDXG translation layer for WSL2) from official GitHub release deb packages if not already present
+        dockerfile.run(
+            f'if ! find /opt/rocm /usr/lib -name "librocdxg.so*" 2>/dev/null | grep -q .; then '
+            f'wget -q "https://github.com/ROCm/librocdxg/releases/download/v{rocdxg_version}/rocdxg-roct_{rocdxg_version}_amd64.deb" -O /tmp/rocdxg-roct.deb && '
+            f'(wget -q "https://github.com/ROCm/librocdxg/releases/download/v{rocdxg_version}/rocdxg-amd-smi-lib_{rocdxg_version}_amd64.deb" -O /tmp/rocdxg-amd-smi.deb || true) && '
+            f'(dpkg -i /tmp/rocdxg-roct.deb || (apt-get update && apt-get install -f -y)) && '
+            f'([ -f /tmp/rocdxg-amd-smi.deb ] && (dpkg -i /tmp/rocdxg-amd-smi.deb || apt-get install -f -y) || true) && '
+            f'rm -f /tmp/rocdxg-roct.deb /tmp/rocdxg-amd-smi.deb; '
+            f'fi && '
+            f'mkdir -p /opt/rocm/lib /opt/rocm/share/rocdxg /usr/share/rocdxg /etc/OpenCL/vendors /usr/lib/wsl/lib && '
+            f'([ -f /usr/lib/librocdxg.so ] && ln -sf /usr/lib/librocdxg.so /opt/rocm/lib/librocdxg.so || true) && '
+            f'([ -f /opt/rocm/lib/librocdxg.so ] && ln -sf /opt/rocm/lib/librocdxg.so /usr/lib/librocdxg.so || true) && '
+            f'([ -f /usr/share/rocdxg/dids.conf ] && ln -sf /usr/share/rocdxg/dids.conf /opt/rocm/share/rocdxg/dids.conf || true) && '
+            f'([ -f /opt/rocm/share/rocdxg/dids.conf ] && ln -sf /opt/rocm/share/rocdxg/dids.conf /usr/share/rocdxg/dids.conf || true) && '
+            f'touch /opt/rocm/share/rocdxg/dids.conf /usr/share/rocdxg/dids.conf && '
+            f'AMDOCL_PATH=$(find /opt/rocm -name "libamdocl64.so*" 2>/dev/null | head -n 1) && '
+            f'if [ -n "$AMDOCL_PATH" ]; then '
+            f'echo "$AMDOCL_PATH" > /etc/OpenCL/vendors/amdocl64.icd && '
+            f'ln -sf "$AMDOCL_PATH" /opt/rocm/lib/libamdocl64.so 2>/dev/null || true && '
+            f'ln -sf "$AMDOCL_PATH" /usr/lib/libamdocl64.so 2>/dev/null || true && '
+            f'echo "$(dirname "$AMDOCL_PATH")" > /etc/ld.so.conf.d/20-amdocl.conf; '
+            f'else echo "libamdocl64.so" > /etc/OpenCL/vendors/amdocl64.icd; fi && '
+            f'echo "/usr/lib/wsl/lib" > /etc/ld.so.conf.d/00-wsl.conf && '
+            f'echo "/opt/rocm/lib" > /etc/ld.so.conf.d/10-rocm.conf && '
+            f'echo "/opt/rocm/lib64" >> /etc/ld.so.conf.d/10-rocm.conf && '
+            f'ldconfig'
+        )
+
+        # Environment variables for ROCm compute and DXG detection on WSL2
+        env_vars = {
+            "ROCM_PATH": "/opt/rocm",
+            "HSA_ENABLE_DXG_DETECTION": "1",
+            "PATH": "/opt/rocm/bin:/opt/rocm/llvm/bin:${PATH}",
+            "LD_LIBRARY_PATH": "/usr/lib/wsl/lib:/opt/rocm/lib:/opt/rocm/lib64",
+        }
+        if getattr(args, "gfx_version", None):
+            env_vars["HSA_OVERRIDE_GFX_VERSION"] = args.gfx_version
+        dockerfile.env(**env_vars)
+
 def configure_user(dockerfile: Dockerfile, args: Any):
     dockerfile.user("ubuntu")
     dockerfile.env(HOME="/home/ubuntu")
@@ -186,11 +248,23 @@ def configure_user(dockerfile: Dockerfile, args: Any):
                     echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ${HOME}/.bashrc")
     dockerfile.workdir("${HOME}")
     
-    if "intel" in args.tag:
+    if "intel" in args.tag or "rocm" in args.tag or "rocm" in args.image:
         dockerfile.userswitch("root")
-        dockerfile.run('addgroup render')
-        dockerfile.run("usermod -a -G render,video ubuntu")
+        dockerfile.run("getent group render || groupadd -r render && \
+                        getent group video || groupadd -r video && \
+                        usermod -a -G render,video ubuntu")
         dockerfile.userswitch("ubuntu")
+
+    if "rocm" in args.tag or "rocm" in args.image:
+        bashrc_additions = [
+            "export HSA_ENABLE_DXG_DETECTION=1",
+            "export PATH=/opt/rocm/bin:/opt/rocm/llvm/bin:$PATH",
+            "export LD_LIBRARY_PATH=/usr/lib/wsl/lib:/opt/rocm/lib:/opt/rocm/lib64:$LD_LIBRARY_PATH",
+        ]
+        if getattr(args, "gfx_version", None):
+            bashrc_additions.append(f"export HSA_OVERRIDE_GFX_VERSION={args.gfx_version}")
+        bashrc_cmd = " && ".join(f"echo '{line}' >> ${{HOME}}/.bashrc" for line in bashrc_additions)
+        dockerfile.run(bashrc_cmd)
 
 def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
     # Install required opencl-headers to build the dlprim_pytorch for Qualcomm since its not available out the door
@@ -279,13 +353,15 @@ def main():
     parser.add_argument("-o", "--output", required=True, help="The output file for the Dockerfile.")
     parser.add_argument("-t", "--tag", required=True, help="The push tag for the Dockerfile.")
     parser.add_argument("-p", "--pocl_version", required=True, help="The version of pocl to install.")
+    parser.add_argument("--rocdxg_version", default="1.2.2", help="The version of librocdxg to install.")
+    parser.add_argument("--gfx_version", default=None, help="Optional HSA_OVERRIDE_GFX_VERSION for AMD GPU (e.g. 12.0.1).")
 
     args = parser.parse_args()
 
     dockerfile = Dockerfile(args.image)
 
     dockerfile.env(IMAGE=args.image, TAG=args.tag)
-    install_intel_opencl(dockerfile)
+    install_intel_opencl(dockerfile, args)
     update_packages(dockerfile)
     install_dependencies(dockerfile, args)
     install_pytorch_ocl_and_numpy(dockerfile, args)
@@ -296,6 +372,7 @@ def main():
         
     # install_cuda_drivers(dockerfile, args)
     install_intelGPU_drivers(dockerfile, args)
+    install_rocm_drivers(dockerfile, args)
     install_opencl_intercept_layer(dockerfile)
     install_cl_blast(dockerfile)
 

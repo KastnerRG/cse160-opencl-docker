@@ -23,8 +23,12 @@ class Dockerfile:
         cmd_string = ", ".join(f'"{c}"' for c in cmd_args)
         self.__write_line(f"CMD [{cmd_string}]")
 
-    def copy(self, source: str, destinsation: str, src_img: str=""):
-        self.__write_line(f"COPY {source} {destinsation}")
+    def copy(self, source: str, destination: str = "", src_img: str = "", destinsation: str = ""):
+        dest = destination or destinsation
+        if src_img:
+            self.__write_line(f"COPY --from={src_img} {source} {dest}")
+        else:
+            self.__write_line(f"COPY {source} {dest}")
     
     def env(self, **kwargs: Dict[str, str]):
         for key, value in kwargs.items():
@@ -38,8 +42,7 @@ class Dockerfile:
         self.__write_line(f"SHELL [{shell_string}]")
 
     def user(self, user: str):
-        if "22.04" in self.image:
-            self.__write_line(f"RUN useradd -ms /bin/bash {user}")
+        self.__write_line(f"RUN id -u {user} >/dev/null 2>&1 || useradd -ms /bin/bash {user}")
         # self.__write_line(f"RUN groupadd -g 65533 cuda && usermod -a -G cuda {user}") # needed for waiter
         self.__write_line(f"USER {user}")
 
@@ -48,3 +51,11 @@ class Dockerfile:
 
     def workdir(self, workdir: str):
         self.__write_line(f"WORKDIR {workdir}")
+
+    def volume(self, *volumes: str):
+        vol_string = ", ".join(f'"{v}"' for v in volumes)
+        self.__write_line(f"VOLUME [{vol_string}]")
+
+    def entrypoint(self, *ep_args: str):
+        ep_string = ", ".join(f'"{e}"' for e in ep_args)
+        self.__write_line(f"ENTRYPOINT [{ep_string}]")
