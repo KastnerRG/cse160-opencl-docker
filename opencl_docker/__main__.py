@@ -57,6 +57,11 @@ def install_dependencies(dockerfile: Dockerfile, args: Any):
             "netcat-openbsd"
         ])
 
+    if "mesa" in args.tag:
+        dependencies.extend([
+            "mesa-opencl-icd"
+        ])
+
     dependencies.extend([
         "python3",
         "python3-dev",
@@ -186,11 +191,15 @@ def configure_user(dockerfile: Dockerfile, args: Any):
                     echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ${HOME}/.bashrc")
     dockerfile.workdir("${HOME}")
     
-    if "intel" in args.tag:
+    if "intel" in args.tag or "mesa" in args.tag:
         dockerfile.userswitch("root")
         dockerfile.run('addgroup render')
         dockerfile.run("usermod -a -G render,video ubuntu")
         dockerfile.userswitch("ubuntu")
+    
+    if "mesa" in args.image:
+        if "adreno" in args.image: dockerfile.env(RUSTICL_ENABLE="freedreno")
+        if "rocm" in args.image: dockerfile.env(RUSTICL_ENABLE="radeonsi")
 
 def install_pytorch_ocl_and_numpy(dockerfile: Dockerfile, args):
     # Install required opencl-headers to build the dlprim_pytorch for Qualcomm since its not available out the door
